@@ -1,0 +1,33 @@
+name: MineBackup
+main: ltguide.minebackup.MineBackup
+author: ltguide
+version: 0.5
+description: Automatically backup your worlds
+commands:
+  minebackup:
+    description: Controls Minebackup
+    aliases: [mbck,backup]
+    usage: /<command>
+permissions:
+  minebackup.*:
+    description: Allows basic command functionality
+    children:
+       minebackup.manual: true
+       minebackup.status: true
+  minebackup.admin:
+    description: Allows admin command functionality
+    children:
+       minebackup.reload: true
+       minebackup.dropbox: true
+  minebackup.manual:
+    description: Allows you to manually control backup process
+    default: false
+  minebackup.status:
+    description: Allows you to view backup status
+    default: false
+  minebackup.reload:
+    description: Allows you to reload configuration
+    default: false
+  minebackup.dropbox:
+    description: Allows you to update dropbox configuration
+    default: false

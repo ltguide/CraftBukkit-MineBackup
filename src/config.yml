@@ -1,0 +1,80 @@
+# For an explanation of these settings, visit https://github.com/ltguide/CraftBukkit-MineBackup/wiki/Configuration
+
+default_actions:
+  save: false
+  copy: false
+  compress: false
+  dropbox: false
+default_settings:
+  save: 15m
+  copy: 1h
+  compress: 1h
+  compression_level: 9
+  dropbox: '3:00'
+  keep: 24
+worlds:
+  someworldname:
+    save: true
+    compress: true
+    dropbox: false
+  someworldname_nether:
+    save: 30m
+    compress: 3h
+    keep: 8
+  someworldname_the_end:
+    save: 30m
+    copy: 6h
+    keep: 4
+others:
+  plugins:
+    copy: false
+    compress: false
+    dropbox: false
+    exclude-folders:
+      - tiles
+    exclude-types:
+      - jar
+directories:
+  worlds: .
+  others: .
+  destination: ./minebackup
+destination:
+  format: '%Y-%M-%D_%H-%m-%S'
+  prepend-world: false
+messages:
+  prefix: '&e[MineBackup]&f'
+  busy: 'An action is currently in progress. Try again in a few seconds.'
+  syntax: '&6Syntax: &f%s &6--&e %s'
+  permission: '&cYou do not have permission.'
+  status: '&6%s: &f%s (&edirty: &f%s) %s'
+  status_action: '&6%s: &f%s (&e%s&f)&6; '
+  status_time_under: 'waiting %s'
+  status_time_over: 'soon (%s over)'
+  status_time_none: 'not scheduled'
+  status_note: 'New actions will be scheduled once a minute.'
+  backup_now: 'All backup actions will start momentarily. (%s)'
+  backup_soon: 'All backup actions added to the queue. (%s)'
+  backup_next: 'The next backup action has been started early. (%s)'
+  backup_done: 'All backup actions have completed.'
+  reload: '&aReloaded configuration. (%s)'
+  dropbox: 'Dropbox authentication completed. (%s)'
+commands:
+  status:
+    description: 'Display the scheduled time and interval for each action in the queue.'
+  now:
+    description: 'Expire all action times and trigger them NOW.'
+    broadcast: users
+  soon:
+    description: 'Expire all action times so that they will trigger on the following queue checks.'
+    broadcast: admins
+  next:
+    description: 'Trigger the next action in the queue. If no time is expired then nothing will happen.'
+    broadcast: admins
+  reload:
+    description: 'Reload configuration and reset queue to configured intervals.'
+    broadcast: false
+  dropbox:
+    description: 'Add Dropbox authentication tokens. Visit http://minebackup-dropbox.appspot.com/ for values.'
+    broadcast: false
+debug: false
+version-nomodify: '0.5'
