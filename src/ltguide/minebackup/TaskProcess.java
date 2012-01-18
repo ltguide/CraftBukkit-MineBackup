@@ -165,9 +165,12 @@ public class TaskProcess extends Thread {
 			plugin.log(" * saving " + process.getName());
 			
 			final long start = System.nanoTime();
-			world.save();
-			for (final Player player : world.getPlayers())
-				player.saveData();
+			
+			synchronized (plugin.synch) {
+				world.save();
+				for (final Player player : world.getPlayers())
+					player.saveData();
+			}
 			
 			plugin.debug("\t\\ done " + plugin.duration(start));
 		}

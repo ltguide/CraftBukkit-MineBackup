@@ -73,10 +73,12 @@ public class Persist {
 	}
 	
 	public boolean isDirty(final String type, final String name) {
-		if ("others".equals(type)) return config.getBoolean("others." + name + ".dirty") || plugin.getServer().getOnlinePlayers().length > 0;
-		
-		final World world = plugin.getServer().getWorld(name);
-		return world != null && (config.getBoolean("worlds." + world.getName() + ".dirty") || world.getPlayers().size() > 0);
+		synchronized (plugin.synch) {
+			if ("others".equals(type)) return config.getBoolean("others." + name + ".dirty") || plugin.getServer().getOnlinePlayers().length > 0;
+			
+			final World world = plugin.getServer().getWorld(name);
+			return world != null && (config.getBoolean("worlds." + world.getName() + ".dirty") || world.getPlayers().size() > 0);
+		}
 	}
 	
 	public long getNext(final String type, final String name, final String action) {

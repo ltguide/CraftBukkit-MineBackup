@@ -31,6 +31,7 @@ public class MineBackup extends JavaPlugin {
 	private final Set<String> working = new HashSet<String>();
 	public Config config;
 	public Persist persist;
+	public Object synch = new Object();
 	
 	public ClassLoader getClazzLoader() {
 		return getClassLoader();
