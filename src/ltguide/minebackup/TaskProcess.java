@@ -2,6 +2,7 @@ package ltguide.minebackup;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
@@ -46,7 +47,7 @@ public class TaskProcess extends Thread {
 		msecs = Calendar.getInstance().getTimeInMillis();
 		if (Debug.ON) plugin.ifDebug("checkQueue(); fill=" + fill);
 		
-		final List<String> actions = Arrays.asList("save", "copy", "compress", "dropbox");
+		final List<String> actions = new ArrayList<String>(Arrays.asList("save", "copy", "compress", "dropbox"));
 		if (fill) {
 			reload();
 			actions.remove("dropbox");
