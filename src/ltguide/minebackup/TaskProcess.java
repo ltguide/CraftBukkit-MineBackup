@@ -22,7 +22,6 @@ import ltguide.minebackup.utils.ZipUtils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.entity.Player;
 
 public class TaskProcess extends Thread {
 	private final MineBackup plugin;
@@ -166,10 +165,11 @@ public class TaskProcess extends Thread {
 			
 			final long start = System.nanoTime();
 			
-			synchronized (plugin.synch) {
-				world.save();
-				for (final Player player : world.getPlayers())
-					player.saveData();
+			try {
+				plugin.callSync("save", world).get();
+			}
+			catch (final Exception e) {
+				plugin.logException(e, "");
 			}
 			
 			plugin.debug("\t\\ done " + plugin.duration(start));
@@ -189,8 +189,8 @@ public class TaskProcess extends Thread {
 			final long start = System.nanoTime();
 			
 			try {
-				if ("copy".equals(process.getAction())) DirUtils.copyDir(sourceDir, target = new File(backupDir, format), prepend, filter);
-				else ZipUtils.zipDir(sourceDir, target = new File(backupDir, format + ".zip"), prepend, plugin.config.getInt(process, "compression_level"), filter);
+				if ("copy".equals(process.getAction())) DirUtils.copyDir(plugin, sourceDir, target = new File(backupDir, format), prepend, filter);
+				else ZipUtils.zipDir(plugin, sourceDir, target = new File(backupDir, format + ".zip"), prepend, plugin.config.getInt(process, "compression_level"), filter);
 				
 				plugin.debug("\t\\ done " + plugin.duration(start));
 				

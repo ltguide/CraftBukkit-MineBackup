@@ -1,6 +1,5 @@
 package ltguide.minebackup.utils;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -9,52 +8,48 @@ import java.io.FileOutputStream;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.zip.Adler32;
-import java.util.zip.CheckedOutputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * Utility class for compressing Zip stripped/refactored/modified by ltguide
- * 
- * @author iubito (Sylvain Machefert)
- * @author ltguide (Matthew Churilla)
- */
+import ltguide.minebackup.MineBackup;
+
 public class ZipUtils {
 	private static final int BUFFER_SIZE = 4 * 1024;
+	private static MineBackup plugin;
+	private static FilenameFilter filter;
+	private static String prepend;
+	private static ZipOutputStream zipOutStream;
 	
-	public static void zipDir(final File srcDir, final File destFile, String prepend, final int level, final FilenameFilter filter) throws FileNotFoundException, IOException {
+	public static void zipDir(final MineBackup plugin, final File srcDir, final File destFile, String prepend, final int level, final FilenameFilter filter) throws FileNotFoundException, IOException {
 		destFile.getParentFile().mkdirs();
 		final FileOutputStream outStream = new FileOutputStream(destFile);
 		
 		try {
-			final CheckedOutputStream checkedOutStream = new CheckedOutputStream(outStream, new Adler32());
+			final BufferedOutputStream bufOutStream = new BufferedOutputStream(outStream, BUFFER_SIZE);
 			try {
-				final BufferedOutputStream bufOutStream = new BufferedOutputStream(checkedOutStream, BUFFER_SIZE);
+				zipOutStream = new ZipOutputStream(bufOutStream);
 				try {
-					final ZipOutputStream zipOutStream = new ZipOutputStream(bufOutStream);
-					try {
-						zipOutStream.setLevel(level);
-						
-						if (prepend != null) {
-							prepend += "/";
-							zipOutStream.putNextEntry(new ZipEntry(prepend));
-							zipOutStream.closeEntry();
-						}
-						else prepend = "";
-						
-						zipDir(srcDir, "", prepend, zipOutStream, filter);
+					zipOutStream.setLevel(level);
+					
+					if (prepend != null) {
+						prepend += "/";
+						zipOutStream.putNextEntry(new ZipEntry(prepend));
+						zipOutStream.closeEntry();
 					}
-					finally {
-						zipOutStream.close();
-					}
+					else prepend = "";
+					
+					ZipUtils.plugin = plugin;
+					ZipUtils.prepend = prepend;
+					ZipUtils.filter = filter;
+					
+					zipDir(srcDir, "");
 				}
 				finally {
-					bufOutStream.close();
+					zipOutStream.close();
 				}
 			}
 			finally {
-				checkedOutStream.close();
+				bufOutStream.close();
 			}
 		}
 		finally {
@@ -62,7 +57,7 @@ public class ZipUtils {
 		}
 	}
 	
-	private static void zipDir(final File srcDir, String currentDir, final String prepend, final ZipOutputStream zipOutStream, final FilenameFilter filter) throws FileNotFoundException, IOException {
+	private static void zipDir(final File srcDir, String currentDir) throws IOException {
 		if (!"".equals(currentDir)) {
 			currentDir += "/";
 			zipOutStream.putNextEntry(new ZipEntry(prepend + currentDir));
@@ -73,37 +68,33 @@ public class ZipUtils {
 		for (final String child : zipDir.list(filter)) {
 			final File srcFile = new File(zipDir, child);
 			
-			if (srcFile.isDirectory()) zipDir(srcDir, currentDir + child, prepend, zipOutStream, filter);
-			else {
-				final ZipEntry zipEntry = new ZipEntry(prepend + currentDir + child);
-				zipEntry.setTime(srcFile.lastModified());
-				zipFile(srcFile, zipEntry, zipOutStream);
-			}
+			if (srcFile.isDirectory()) zipDir(srcDir, currentDir + child);
+			else zipFile(srcFile, prepend + currentDir + child);
 		}
 	}
 	
-	private static void zipFile(final File srcFile, final ZipEntry zipEntry, final ZipOutputStream zipOutStream) throws FileNotFoundException, IOException {
-		final InputStream inStream = new FileInputStream(srcFile);
+	private static void zipFile(final File srcFile, final String entry) throws IOException {
 		try {
-			final BufferedInputStream bufInStream = new BufferedInputStream(inStream, BUFFER_SIZE);
+			final InputStream inStream = new FileInputStream(srcFile);
 			try {
+				final ZipEntry zipEntry = new ZipEntry(entry);
+				zipEntry.setTime(srcFile.lastModified());
 				zipOutStream.putNextEntry(zipEntry);
 				
 				final byte[] buf = new byte[BUFFER_SIZE];
 				int len;
 				
-				while ((len = bufInStream.read(buf)) > -1)
+				while ((len = inStream.read(buf)) > -1)
 					if (len > 0) zipOutStream.write(buf, 0, len);
 				
 				zipOutStream.closeEntry();
 			}
 			finally {
-				bufInStream.close();
+				inStream.close();
 			}
 		}
-		finally {
-			inStream.close();
+		catch (final FileNotFoundException e) {
+			plugin.debug("\t\\ unable to read: " + srcFile);
 		}
 	}
-	
 }

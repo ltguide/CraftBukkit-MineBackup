@@ -103,7 +103,7 @@ public class Config {
 			defaultSettings.set(key, getTime(defaultSettings, key));
 		
 		fixIntRange(defaultSettings, "compression_level", 0, 9);
-		fixIntRange(defaultSettings, "keep", 1, 24);
+		fixIntRange(defaultSettings, "keep", 1, 168);
 		
 		for (final Message message : Message.values())
 			message.setText(config.getString("messages." + message.name().toLowerCase()));
@@ -262,7 +262,7 @@ public class Config {
 		}
 		
 		@Override public boolean accept(final File dir, String name) {
-			final String path = dir.getPath().toLowerCase();
+			final String path = dir.getName().toLowerCase();
 			name = name.toLowerCase();
 			
 			for (final String folder : folders)

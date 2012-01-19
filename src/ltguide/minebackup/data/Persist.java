@@ -73,12 +73,23 @@ public class Persist {
 	}
 	
 	public boolean isDirty(final String type, final String name) {
-		synchronized (plugin.synch) {
-			if ("others".equals(type)) return config.getBoolean("others." + name + ".dirty") || plugin.getServer().getOnlinePlayers().length > 0;
-			
-			final World world = plugin.getServer().getWorld(name);
-			return world != null && (config.getBoolean("worlds." + world.getName() + ".dirty") || world.getPlayers().size() > 0);
+		World world = null;
+		
+		if ("worlds".equals(type) && (world = plugin.getServer().getWorld(name)) == null) return false;
+		
+		try {
+			return config.getBoolean(type + "." + name + ".dirty") || ("Server thread".equals(Thread.currentThread().getName()) ? hasPlayers(world) : plugin.callSync("count", world).get());
 		}
+		catch (final Exception e) {
+			plugin.logException(e, "");
+			return false;
+		}
+	}
+	
+	public boolean hasPlayers(final World world) {
+		if (world != null) return world.getPlayers().size() > 0;
+		
+		return plugin.getServer().getOnlinePlayers().length > 0;
 	}
 	
 	public long getNext(final String type, final String name, final String action) {
@@ -104,7 +115,12 @@ public class Persist {
 			keep.remove(0);
 			
 			plugin.debug(" * deleting " + backup);
+			
+			final long start = System.nanoTime();
+			
 			DirUtils.delete(new File(backup));
+			
+			plugin.debug("\t\\ done " + plugin.duration(start));
 		}
 		
 		config.set(path, keep);

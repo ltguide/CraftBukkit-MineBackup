@@ -3,6 +3,7 @@ package ltguide.minebackup;
 import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 
 import ltguide.debug.Debug;
@@ -31,7 +32,6 @@ public class MineBackup extends JavaPlugin {
 	private final Set<String> working = new HashSet<String>();
 	public Config config;
 	public Persist persist;
-	public Object synch = new Object();
 	
 	public ClassLoader getClazzLoader() {
 		return getClassLoader();
@@ -100,6 +100,10 @@ public class MineBackup extends JavaPlugin {
 		dropboxId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, dropbox, 30 * 20L, 300 * 20L);
 	}
 	
+	public Future<Boolean> callSync(final String action, final World world) {
+		return getServer().getScheduler().callSyncMethod(this, new CallSync(this, action, world));
+	}
+	
 	protected synchronized void setWorking(final Thread thread, final boolean working) {
 		final String name = thread.getClass().getSimpleName();
 		
@@ -146,12 +150,12 @@ public class MineBackup extends JavaPlugin {
 		getServer().getLogger().log(level, ChatColor.stripColor(msg));
 	}
 	
-	public void logException(final Exception ex, final String msg) {
+	public void logException(final Exception e, final String msg) {
 		log(Level.SEVERE, "---------------------------------------");
 		if (!"".equals(msg)) log(Level.SEVERE, "DEBUG: " + msg);
 		
-		log(Level.SEVERE, ex.toString());
-		for (final StackTraceElement stack : ex.getStackTrace())
+		log(Level.SEVERE, e.toString());
+		for (final StackTraceElement stack : e.getStackTrace())
 			log(Level.SEVERE, "\t" + stack.toString());
 		
 		log(Level.SEVERE, "---------------------------------------");
@@ -165,7 +169,7 @@ public class MineBackup extends JavaPlugin {
 		if (Debug.ON) log("# " + msg);
 	}
 	
-	protected String duration(final long start) {
+	public String duration(final long start) {
 		return String.format("%.2fms", (System.nanoTime() - start) * 1e-6);
 	}
 	
