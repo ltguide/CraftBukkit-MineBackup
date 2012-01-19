@@ -1,7 +1,7 @@
 # For an explanation of these settings, visit https://github.com/ltguide/CraftBukkit-MineBackup/wiki/Configuration
 
 default_actions:
-  save: false
+  save: true
   copy: false
   compress: false
   dropbox: false
@@ -77,4 +77,4 @@ commands:
     description: 'Add Dropbox authentication tokens. Visit https://minebackup-dropbox.appspot.com/ for values.'
     broadcast: false
 debug: false
-version-nomodify: '0.5'
+version-nomodify: '0.5.4'

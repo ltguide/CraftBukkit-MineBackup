@@ -74,27 +74,29 @@ public class ZipUtils {
 	}
 	
 	private static void zipFile(final File srcFile, final String entry) throws IOException {
+		final InputStream inStream = new FileInputStream(srcFile);
 		try {
-			final InputStream inStream = new FileInputStream(srcFile);
+			final ZipEntry zipEntry = new ZipEntry(entry);
+			zipEntry.setTime(srcFile.lastModified());
+			zipOutStream.putNextEntry(zipEntry);
+			
+			final byte[] buf = new byte[BUFFER_SIZE];
+			int len;
+			
 			try {
-				final ZipEntry zipEntry = new ZipEntry(entry);
-				zipEntry.setTime(srcFile.lastModified());
-				zipOutStream.putNextEntry(zipEntry);
-				
-				final byte[] buf = new byte[BUFFER_SIZE];
-				int len;
-				
 				while ((len = inStream.read(buf)) > -1)
 					if (len > 0) zipOutStream.write(buf, 0, len);
-				
-				zipOutStream.closeEntry();
+			}
+			catch (final IOException e) {
+				if ("The process cannot access the file because another process has locked a portion of the file".equals(e.getMessage())) plugin.debug("\t\\ unable to read from: " + srcFile);
+				else throw e;
 			}
 			finally {
-				inStream.close();
+				zipOutStream.closeEntry();
 			}
 		}
-		catch (final FileNotFoundException e) {
-			plugin.debug("\t\\ unable to read: " + srcFile);
+		finally {
+			inStream.close();
 		}
 	}
 }
