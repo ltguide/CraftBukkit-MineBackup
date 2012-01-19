@@ -74,7 +74,7 @@ commands:
     description: 'Reload configuration and reset queue to configured intervals.'
     broadcast: false
   dropbox:
-    description: 'Add Dropbox authentication tokens. Visit http://minebackup-dropbox.appspot.com/ for values.'
+    description: 'Add Dropbox authentication tokens. Visit https://minebackup-dropbox.appspot.com/ for values.'
     broadcast: false
 debug: false
 version-nomodify: '0.5'

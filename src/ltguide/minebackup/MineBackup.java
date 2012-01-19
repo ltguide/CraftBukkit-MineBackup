@@ -33,10 +33,6 @@ public class MineBackup extends JavaPlugin {
 	public Config config;
 	public Persist persist;
 	
-	public ClassLoader getClazzLoader() {
-		return getClassLoader();
-	}
-	
 	@Override public void onDisable() {
 		for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(true);

@@ -54,7 +54,7 @@ public class TaskDropbox extends Thread {
 		final long start = System.nanoTime();
 		
 		try {
-			HttpUtils.put("https://api-content.dropbox.com/1/files_put/sandbox/" + path, getSignature(path), new File(target));
+			HttpUtils.put("https://api-content.dropbox.com/1/files_put/sandbox/" + path, getAuth(path), new File(target));
 			plugin.debug("\t\\ upload done " + plugin.duration(start));
 		}
 		catch (final DropboxException e) {
@@ -64,7 +64,7 @@ public class TaskDropbox extends Thread {
 		plugin.setWorking(this, false);
 	}
 	
-	public String getSignature(final String url) throws DropboxException {
+	public String getAuth(final String url) throws DropboxException {
 		final long time = Calendar.getInstance().getTimeInMillis();
 		oauth.put("oauth_nonce", String.valueOf(new Random(time).nextLong()));
 		oauth.put("oauth_timestamp", String.valueOf(time / 1000));
@@ -74,6 +74,6 @@ public class TaskDropbox extends Thread {
 		params.put("params", HttpUtils.urlencode(oauth));
 		params.put("oauth_token_secret", userSecret);
 		
-		return HttpUtils.createSignature(oauth, HttpUtils.responseGet("https://minebackup-dropbox.appspot.com/sign?" + HttpUtils.urlencode(params)));
+		return HttpUtils.createAuth(oauth, HttpUtils.responseGet("https://minebackup-dropbox.appspot.com/sign?" + HttpUtils.urlencode(params)));
 	}
 }

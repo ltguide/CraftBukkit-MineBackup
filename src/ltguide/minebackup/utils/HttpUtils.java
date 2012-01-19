@@ -97,7 +97,7 @@ public class HttpUtils {
 		return sb.substring(1);
 	}
 	
-	public static String createSignature(final SortedMap<String, String> params, final String signature) {
+	public static String createAuth(final SortedMap<String, String> params, final String signature) {
 		final StringBuilder sb = new StringBuilder("OAuth ");
 		
 		for (final Map.Entry<String, String> param : params.entrySet()) {
