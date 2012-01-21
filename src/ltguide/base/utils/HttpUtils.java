@@ -1,4 +1,4 @@
-package ltguide.minebackup.utils;
+package ltguide.base.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -12,24 +12,24 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.SortedMap;
 
-import ltguide.minebackup.exceptions.DropboxException;
+import ltguide.base.exceptions.HttpException;
 
 public class HttpUtils {
 	public static final long maxSize = 180 * 1024 * 1024;
 	
-	public static String responseGet(final String url) throws DropboxException {
+	public static String responseGet(final String url) throws HttpException {
 		return new Scanner(get(url)).useDelimiter("\\A").next();
 	}
 	
-	public static InputStream get(final String url) throws DropboxException {
+	public static InputStream get(final String url) throws HttpException {
 		return getResponse(setupConnection(url));
 	}
 	
-	public static InputStream put(final String url, final String auth, final File file) throws DropboxException {
+	public static InputStream put(final String url, final String auth, final File file) throws HttpException {
 		final int length = (int) file.length();
 		
-		if (length > maxSize) throw new DropboxException("file size exceeds maximum allowed by the API");
-		if (length == 0L) throw new DropboxException("file not found or empty");
+		if (length > maxSize) throw new HttpException("file size exceeds maximum allowed by the API");
+		if (length == 0L) throw new HttpException("file not found or empty");
 		
 		final HttpURLConnection connection = setupConnection(url);
 		connection.setRequestProperty("Authorization", auth);
@@ -57,11 +57,11 @@ public class HttpUtils {
 			return getResponse(connection);
 		}
 		catch (final IOException e) {
-			throw new DropboxException(e);
+			throw new HttpException(e);
 		}
 	}
 	
-	public static HttpURLConnection setupConnection(final String url) throws DropboxException {
+	public static HttpURLConnection setupConnection(final String url) throws HttpException {
 		try {
 			final HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
 			connection.setRequestProperty("Accept-Charset", "UTF-8");
@@ -69,19 +69,19 @@ public class HttpUtils {
 			return connection;
 		}
 		catch (final IOException e) {
-			throw new DropboxException(e);
+			throw new HttpException(e);
 		}
 	}
 	
-	public static InputStream getResponse(final HttpURLConnection connection) throws DropboxException {
+	public static InputStream getResponse(final HttpURLConnection connection) throws HttpException {
 		try {
 			final int code = connection.getResponseCode();
-			if (code != 200 && code != 304) throw new DropboxException(code);
+			if (code != 200 && code != 304) throw new HttpException(code);
 			
 			return connection.getInputStream();
 		}
 		catch (final IOException e) {
-			throw new DropboxException(e);
+			throw new HttpException(e);
 		}
 	}
 	

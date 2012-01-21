@@ -4,21 +4,17 @@ import java.util.Calendar;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
 
-import ltguide.debug.Debug;
-import ltguide.minebackup.data.Command;
+import ltguide.base.Base;
+import ltguide.base.Debug;
 import ltguide.minebackup.data.Config;
 import ltguide.minebackup.data.Persist;
-import ltguide.minebackup.listeners.MineBackupCommandListener;
-import ltguide.minebackup.listeners.MineBackupPlayerListener;
-import ltguide.minebackup.listeners.MineBackupWorldListener;
+import ltguide.minebackup.listeners.CommandListener;
+import ltguide.minebackup.listeners.PlayerListener;
+import ltguide.minebackup.listeners.WorldListener;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.World;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.PluginManager;
@@ -37,28 +33,43 @@ public class MineBackup extends JavaPlugin {
 		for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(true);
 		
-		if (persist != null) persist.save();
+		if (persist != null) persist.saveConfig();
 	}
 	
 	@Override public void onEnable() {
+		if (Debug.ON) Debug.init(this);
+		Base.init(this);
+		persist = new Persist(this);
+		config = new Config(this);
+		Base.setDebug(config.getBoolean("debug"));
+		
 		for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(false);
 		
-		getCommand("minebackup").setExecutor(new MineBackupCommandListener(this));
+		getCommand("minebackup").setExecutor(new CommandListener(this));
 		
-		final MineBackupPlayerListener playerListener = new MineBackupPlayerListener(this);
+		final PlayerListener playerListener = new PlayerListener(this);
 		final PluginManager pm = getServer().getPluginManager();
 		pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Priority.Monitor, this);
 		pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Priority.Monitor, this);
-		pm.registerEvent(Event.Type.WORLD_SAVE, new MineBackupWorldListener(this), Priority.Monitor, this);
+		pm.registerEvent(Event.Type.WORLD_SAVE, new WorldListener(this), Priority.Monitor, this);
 		
-		persist = new Persist(this);
-		config = new Config(this);
-		
-		log("v" + getDescription().getVersion() + " enabled");
+		Base.info("v" + getDescription().getVersion() + " enabled");
 		
 		spawnProcess(60); // 60
 		spawnDropbox();
+	}
+	
+	public void reload() {
+		config.reload();
+		persist.reload();
+		process.reload();
+		Base.setDebug(config.getBoolean("debug"));
+		spawnDropbox();
+	}
+	
+	public void fillProcessQueue() {
+		process.checkQueue(true);
 	}
 	
 	public int spawnProcess() {
@@ -71,14 +82,14 @@ public class MineBackup extends JavaPlugin {
 		if (processId != -1) getServer().getScheduler().cancelTask(processId);
 		
 		if (delay == 0) {
-			if (Debug.ON) ifDebug("spawnProcess(); delay 0 (quick mode)");
+			if (Debug.ON) Debug.info("spawnProcess(); delay 0 (quick mode)");
 			process.setQuick(true);
 			
 			processId = spawnProcess();
 		}
 		else {
 			if (delay == 60) delay -= Calendar.getInstance().get(Calendar.SECOND);
-			if (Debug.ON) ifDebug("spawnProcess(); delaying " + delay);
+			if (Debug.ON) Debug.info("spawnProcess(); delaying " + delay);
 			
 			processId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, process.setQuick(false), delay * 20L, 60 * 20L);
 		}
@@ -86,12 +97,12 @@ public class MineBackup extends JavaPlugin {
 	
 	public void spawnDropbox() {
 		if (isWorking(dropbox)) return;
-		if (Debug.ON) ifDebug("attempting to spawnDropbox()");
+		if (Debug.ON) Debug.info("attempting to spawnDropbox()");
 		
 		if (dropboxRunning()) getServer().getScheduler().cancelTask(dropboxId);
 		
 		if (!config.hasDropboxAction() || !dropbox.hasDropboxAuth()) return;
-		if (Debug.ON) ifDebug("spawnDropbox()");
+		if (Debug.ON) Debug.info("spawnDropbox()");
 		
 		dropboxId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, dropbox, 30 * 20L, 300 * 20L);
 	}
@@ -106,7 +117,7 @@ public class MineBackup extends JavaPlugin {
 		if (working) this.working.add(name);
 		else this.working.remove(name);
 		
-		if (working == false && "TaskProcess".equals(name)) persist.save();
+		if (working == false && "TaskProcess".equals(name)) persist.saveConfig();
 	}
 	
 	public synchronized boolean isWorking() {
@@ -117,70 +128,7 @@ public class MineBackup extends JavaPlugin {
 		return working.contains(thread.getClass().getSimpleName());
 	}
 	
-	public void broadcast(final CommandSender sender, final Command command) {
-		broadcast(sender, command.getBroadcast(), command.getMessage().toString(sender.getName()));
-	}
-	
-	public void broadcast(final CommandSender sender, final String broadcast, final String message) {
-		if (broadcast == null) send(sender, message);
-		else getServer().broadcast(message, broadcast);
-	}
-	
-	public void send(final CommandSender sender, final String msg) {
-		if (sender instanceof Player) {
-			sender.sendMessage(msg);
-			log("->" + sender.getName() + " " + msg);
-		}
-		else logRaw(Level.INFO, msg);
-	}
-	
-	protected void log(final String msg) {
-		log(Level.INFO, msg);
-	}
-	
-	public void log(final Level level, final String msg) {
-		logRaw(level, "[" + getDescription().getName() + "] " + msg);
-	}
-	
-	public void logRaw(final Level level, final String msg) {
-		getServer().getLogger().log(level, ChatColor.stripColor(msg));
-	}
-	
-	public void logException(final Exception e, final String msg) {
-		log(Level.SEVERE, "---------------------------------------");
-		if (!"".equals(msg)) log(Level.SEVERE, "DEBUG: " + msg);
-		
-		log(Level.SEVERE, e.toString());
-		for (final StackTraceElement stack : e.getStackTrace())
-			log(Level.SEVERE, "\t" + stack.toString());
-		
-		log(Level.SEVERE, "---------------------------------------");
-	}
-	
-	public void debug(final String msg) {
-		if (getConfig().getBoolean("debug")) log(msg);
-	}
-	
-	public void ifDebug(final String msg) {
-		if (Debug.ON) log("# " + msg);
-	}
-	
-	public String duration(final long start) {
-		return String.format("%.2fms", (System.nanoTime() - start) * 1e-6);
-	}
-	
 	public boolean dropboxRunning() {
 		return dropboxId != -1;
-	}
-	
-	public void fillProcessQueue() {
-		process.checkQueue(true);
-	}
-	
-	public void reload() {
-		config.reload();
-		persist.reload();
-		process.reload();
-		spawnDropbox();
 	}
 }

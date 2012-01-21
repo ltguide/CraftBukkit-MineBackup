@@ -2,14 +2,13 @@ package ltguide.minebackup.listeners;
 
 import ltguide.minebackup.MineBackup;
 
-import org.bukkit.event.player.PlayerListener;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-public class MineBackupPlayerListener extends PlayerListener {
+public class PlayerListener extends org.bukkit.event.player.PlayerListener {
 	private final MineBackup plugin;
 	
-	public MineBackupPlayerListener(final MineBackup plugin) {
+	public PlayerListener(final MineBackup plugin) {
 		this.plugin = plugin;
 	}
 	

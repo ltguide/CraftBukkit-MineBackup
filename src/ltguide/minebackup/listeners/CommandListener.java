@@ -5,102 +5,95 @@ import java.util.Calendar;
 import java.util.Map;
 import java.util.TreeMap;
 
+import ltguide.base.Base;
+import ltguide.base.data.Message;
+import ltguide.base.exceptions.CommandException;
 import ltguide.minebackup.MineBackup;
-import ltguide.minebackup.data.Command;
-import ltguide.minebackup.data.Message;
-import ltguide.minebackup.exceptions.CommandException;
+import ltguide.minebackup.data.Commands;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 
-public class MineBackupCommandListener implements CommandExecutor {
+public class CommandListener implements CommandExecutor {
 	private final MineBackup plugin;
+	private long msecs;
 	
-	public MineBackupCommandListener(final MineBackup plugin) {
+	public CommandListener(final MineBackup plugin) {
 		this.plugin = plugin;
 	}
 	
 	@Override public boolean onCommand(final CommandSender sender, final org.bukkit.command.Command c, final String label, final String[] args) {
 		try {
-			if (plugin.isWorking()) throw new CommandException(Message.BUSY);
+			if (plugin.isWorking()) throw new CommandException(Message.get("BUSY"));
 			
-			Command command;
-			if (args.length == 0 || (command = Command.toValue(args[0])) == null) {
-				for (final Command comm : Command.values())
-					if (sender.hasPermission("minebackup." + comm.getPerm())) plugin.send(sender, Message.SYNTAX.toString(comm.getSyntax(label), comm.getText()));
-				
-				return true;
-			}
+			final Commands commands;
+			if ((commands = Commands.get(sender, label, args)) == null) return true;
 			
-			if (!sender.hasPermission("minebackup." + command.getPerm())) throw new CommandException(Message.PERMISSION);
-			
-			if (command.getRequired() > args.length - 1) throw new CommandException(Message.SYNTAX, command.getSyntax(label), command.getText());
-			
-			switch (command) {
+			switch (commands) {
 				case STATUS:
-					final long msecs = Calendar.getInstance().getTimeInMillis();
+					msecs = Calendar.getInstance().getTimeInMillis();
 					
 					for (final String name : plugin.config.getOthers())
-						sendStatus(sender, msecs, "others", name);
+						sendStatus(sender, "others", name);
 					
 					for (final World world : Bukkit.getWorlds())
-						sendStatus(sender, msecs, "worlds", world.getName());
+						sendStatus(sender, "worlds", world.getName());
 					
-					plugin.send(sender, Message.STATUS_NOTE.toString());
+					Base.send(sender, Message.getText("STATUS_NOTE"));
 					break;
 				case NOW:
-					plugin.broadcast(sender, command);
+					Base.broadcast(sender, commands.handle);
 					plugin.spawnProcess(0);
 					break;
 				case SOON:
 					plugin.fillProcessQueue();
-					plugin.broadcast(sender, command);
+					Base.broadcast(sender, commands.handle);
 					break;
 				case NEXT:
-					plugin.broadcast(sender, command);
+					Base.broadcast(sender, commands.handle);
 					plugin.spawnProcess();
 					break;
 				case RELOAD:
 					plugin.reload();
-					plugin.broadcast(sender, command);
+					Base.broadcast(sender, commands.handle);
 					break;
 				case DROPBOX:
 					plugin.persist.setDropboxAuth(args[1], args[2]);
 					plugin.spawnDropbox();
-					plugin.broadcast(sender, command);
+					Base.broadcast(sender, commands.handle);
 					break;
 			}
 		}
 		catch (final CommandException e) {
-			plugin.send(sender, e.getMessage());
+			Base.send(sender, e.getMessage());
 		}
 		
 		return true;
 	}
 	
-	private void sendStatus(final CommandSender sender, final long msecs, final String type, final String name) {
+	private void sendStatus(final CommandSender sender, final String type, final String name) {
 		long interval;
 		
-		if (!plugin.persist.isLoaded(name)) return;
+		if (!plugin.config.isLoaded(type, name)) return;
 		
 		final StringBuilder sb = new StringBuilder();
 		for (final String action : Arrays.asList("save", "copy", "compress", "dropbox"))
-			if ((interval = plugin.config.getInterval(type, name, action)) != 0) sb.append(Message.STATUS_ACTION.toString(action, getNext(msecs, type, name, action), getTime(interval)));
+			if ((interval = plugin.config.getInterval(type, name, action)) != 0) sb.append(Message.getText("STATUS_ACTION", action, getNext(msecs, type, name, action), getTime(interval)));
 		
-		plugin.send(sender, Message.STATUS.toString("worlds".equals(type) ? "World" : "Other", name, plugin.persist.isDirty(type, name), sb.toString()));
+		Base.send(sender, Message.getText("STATUS", "worlds".equals(type) ? "World" : "Other", name, plugin.persist.isDirty(type, name), sb.toString()));
 	}
 	
 	private String getNext(final long msecs, final String type, final String name, final String action) {
 		long time = plugin.persist.getNext(type, name, action);
-		if (time == 0L) return Message.STATUS_TIME_NONE.toString();
+		if (time == 0L) return Message.getText("STATUS_TIME_NONE");
 		
 		time -= msecs;
-		if (time > 0L) return Message.STATUS_TIME_UNDER.toString(getTime(time));
+		if (time > 0L) return Message.getText("STATUS_TIME_UNDER", getTime(time));
 		
 		time *= -1;
-		return Message.STATUS_TIME_OVER.toString(getTime(time));
+		return Message.getText("STATUS_TIME_OVER", getTime(time));
 	}
 	
 	private String getTime(final long time) {

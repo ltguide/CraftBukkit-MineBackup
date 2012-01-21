@@ -3,116 +3,118 @@ package ltguide.minebackup.data;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.zip.Deflater;
 
-import ltguide.debug.Debug;
-import ltguide.minebackup.MineBackup;
+import ltguide.base.Base;
+import ltguide.base.Debug;
+import ltguide.base.data.Command;
+import ltguide.base.data.Configuration;
+import ltguide.base.data.Message;
 
 import org.bukkit.Server;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
-public class Config {
-	private final MineBackup plugin;
-	private FileConfiguration config;
+public class Config extends Configuration {
+	private final Set<String> loaded = new HashSet<String>();
 	
-	public Config(final MineBackup plugin) {
-		this.plugin = plugin;
-		config = plugin.getConfig();
+	public Config(final JavaPlugin instance) {
+		super(instance, "config.yml");
+		
+		loadConfig();
 		
 		if (upgradeConfig()) {
-			config.options().copyDefaults(true);
-			plugin.saveConfig();
+			options().copyDefaults(true);
+			saveConfig();
 		}
 		
 		checkConfig();
 	}
 	
 	public void reload() {
-		plugin.reloadConfig();
-		config = plugin.getConfig();
-		
+		loadConfig();
 		checkConfig();
+		loaded.clear();
 	}
 	
 	private boolean upgradeConfig() {
-		if (Debug.ON) plugin.ifDebug("checking config version");
-		if (config.isSet("version-nomodify")) {
-			if (Debug.ON) plugin.ifDebug("version isSet");
+		if (Debug.ON) Debug.info("checking config version");
+		if (isSet("version-nomodify")) {
+			if (Debug.ON) Debug.info("version isSet");
 			final String version = plugin.getDescription().getVersion();
-			final String oldVersion = config.getString("version-nomodify");
+			final String oldVersion = getString("version-nomodify");
 			
 			if (version.equals(oldVersion)) return false;
-			if (Debug.ON) plugin.ifDebug("upgrading config");
-			config.set("version-nomodify", version);
+			if (Debug.ON) Debug.info("upgrading config");
+			set("version-nomodify", version);
 			
 			//if (oldVersion == "0.x") {
 			//	//upgrade
 			//}
 		}
-		else if (config.isSet("backup")) {
-			plugin.log(Level.WARNING, "migrating config from v0.4.8.1+");
+		else if (isSet("backup")) {
+			Base.warning("migrating config from v0.4.8.1+");
 			
-			final String oldLevel = config.getString("compression.level");
+			final String oldLevel = getString("compression.level");
 			int level = Deflater.BEST_COMPRESSION;
 			if ("BEST_SPEED".equals(oldLevel)) level = Deflater.BEST_SPEED;
 			else if ("NO_COMPRESSION".equals(oldLevel)) level = Deflater.NO_COMPRESSION;
 			
-			final int interval = config.getInt("time.interval", 3600);
-			final String format = config.getString("backup.format", "%Y-%M-%D_%H-%m-%S");
+			final int interval = getInt("time.interval", 3600);
+			final String format = getString("backup.format", "%Y-%M-%D_%H-%m-%S");
 			
-			final String action = config.getBoolean("compression.enabled", false) ? "compress" : "copy";
+			final String action = getBoolean("compression.enabled", false) ? "compress" : "copy";
 			
-			for (final String world : config.getStringList("worlds")) {
-				config.set("worlds." + world + ".save", true);
-				config.set("worlds." + world + "." + action, true);
+			for (final String world : getStringList("worlds")) {
+				set("worlds." + world + ".save", true);
+				set("worlds." + world + "." + action, true);
 			}
 			
-			if (config.getBoolean("options.backup-plugins", false)) config.set("others.plugins." + action, true);
+			if (getBoolean("options.backup-plugins", false)) set("others.plugins." + action, true);
 			
-			config.set("default_settings.compression_level", level);
-			config.set("default_settings.compress", interval);
-			config.set("default_settings.copy", interval);
-			config.set("default_settings.keep", (int) Math.floor(86400 / interval));
-			config.set("directories.destination", config.getString("backup.dir", "minebackup"));
-			config.set("destination.format", format.startsWith("%W/") ? format.substring(3) : format);
-			config.set("debug", config.getBoolean("options.debug", false));
+			set("default_settings.compression_level", level);
+			set("default_settings.compress", interval);
+			set("default_settings.copy", interval);
+			set("default_settings.keep", (int) Math.floor(86400 / interval));
+			set("directories.destination", getString("backup.dir", "minebackup"));
+			set("destination.format", format.startsWith("%W/") ? format.substring(3) : format);
+			set("debug", getBoolean("options.debug", false));
 			
-			config.set("compression", null);
-			config.set("messages.backup-ended", null);
-			config.set("messages.backup-started", null);
-			config.set("messages.backup-started-user", null);
-			config.set("messages.enabled", null);
-			config.set("backup", null);
-			config.set("time", null);
-			config.set("options", null);
+			set("compression", null);
+			set("messages.backup-ended", null);
+			set("messages.backup-started", null);
+			set("messages.backup-started-user", null);
+			set("messages.enabled", null);
+			set("backup", null);
+			set("time", null);
+			set("options", null);
 		}
-		else if (Debug.ON) plugin.debug("using default config");
+		else if (Debug.ON) Debug.info("using default config");
 		
 		return true;
 	}
 	
 	private void checkConfig() {
-		config.options().copyDefaults(true);
+		options().copyDefaults(true);
 		
-		final ConfigurationSection defaultSettings = config.getConfigurationSection("default_settings");
+		final ConfigurationSection defaultSettings = getConfigurationSection("default_settings");
 		for (final String key : Arrays.asList("save", "copy", "compress", "dropbox"))
 			defaultSettings.set(key, getTime(defaultSettings, key));
 		
 		fixIntRange(defaultSettings, "compression_level", 0, 9);
 		fixIntRange(defaultSettings, "keep", 1, 168);
 		
-		for (final Message message : Message.values())
-			message.setText(config.getString("messages." + message.name().toLowerCase()));
+		for (final Messages messages : Messages.values())
+			Message.setConfig(messages.name(), getString("messages." + messages.name().toLowerCase()));
 		
-		for (final Command command : Command.values()) {
+		for (final Commands command : Commands.values()) {
 			final String path = "commands." + command.name().toLowerCase();
 			
-			command.setText(config.getString(path + ".description"));
-			command.setBroadcast(getBroadcast(config.get(path + ".broadcast")));
+			//command.setup(getString(path + ".description"), getBroadcast(get(path + ".broadcast")));
+			Command.setConfig(command.name(), getString(path + ".description"), getBroadcast(get(path + ".broadcast")));
 		}
 	}
 	
@@ -134,11 +136,11 @@ public class Config {
 	}
 	
 	private boolean isValidTime(final ConfigurationSection cs, final String key) {
-		if (Debug.ON) plugin.ifDebug("checking " + cs.getCurrentPath() + "." + key);
+		if (Debug.ON) Debug.info("checking " + cs.getCurrentPath() + "." + key);
 		boolean valid = false;
 		final Object obj = cs.get(key);
 		if (obj != null) {
-			if (Debug.ON) plugin.ifDebug(" \\ " + obj + " (" + obj.getClass().getSimpleName() + ")");
+			if (Debug.ON) Debug.info(" \\ " + obj + " (" + obj.getClass().getSimpleName() + ")");
 			if (obj instanceof Integer) valid = (Integer) obj > -1;
 			else if (obj instanceof String) valid = ((String) obj).matches("0|[1-9]\\d*[smhd]|(?:[0-1]?\\d|2[0-4]):[0-5][0-9]");
 		}
@@ -177,32 +179,42 @@ public class Config {
 	private void fixIntRange(final ConfigurationSection cs, final String key, final int min, final int max) {
 		final int value = cs.getInt(key);
 		if (value < min || value > max) {
-			cs.set(key, config.getDefaultSection().getInt("default_settings." + key));
+			cs.set(key, getDefaultSection().getInt("default_settings." + key));
 			sendWarning(cs, key, value + "; valid: " + min + "-" + max);
 		}
 	}
 	
 	private void sendWarning(final ConfigurationSection cs, final String key, final Object object) {
-		plugin.log(Level.WARNING, " $ invalid config setting: " + cs.getCurrentPath() + "." + key + " (" + object + ")");
+		Base.warning(" $ invalid config setting: " + cs.getCurrentPath() + "." + key + " (" + object + ")");
 	}
 	
-	protected void cascadeConfig(final String type, final String name) {
-		plugin.debug(" - cascading config for " + type + "\\" + name);
-		ConfigurationSection folderSettings = config.getConfigurationSection(type + "." + name);
-		if (folderSettings == null) folderSettings = config.createSection(type + "." + name);
+	public boolean isLoaded(final String type, final String name) {
+		return loaded.contains(type + "-" + name);
+	}
+	
+	public boolean load(final String type, final String name) {
+		if (isLoaded(type, name)) return false;
+		loaded.add(type + "-" + name);
 		
-		final ConfigurationSection defaultActions = config.getConfigurationSection("default_actions");
-		final ConfigurationSection defaultSettings = config.getConfigurationSection("default_settings");
+		Base.debug(" - loading config " + type + "\\" + name);
+		
+		ConfigurationSection folderSettings = getConfigurationSection(type + "." + name);
+		if (folderSettings == null) folderSettings = createSection(type + "." + name);
+		
+		//final ConfigurationSection defaultActions = getConfigurationSection("default_actions");
+		final ConfigurationSection defaultSettings = getConfigurationSection("default_settings");
 		
 		for (final String key : defaultSettings.getKeys(false))
 			if (folderSettings.contains(key)) {
 				if (folderSettings.isBoolean(key)) folderSettings.set(key, folderSettings.getBoolean(key) ? defaultSettings.get(key) : 0);
 				else folderSettings.set(key, getTime(folderSettings, key));
 			}
-			else folderSettings.set(key, !defaultActions.contains(key) || defaultActions.getBoolean(key) ? defaultSettings.get(key) : 0);
+			else folderSettings.set(key, !contains("default_actions." + key) || getBoolean("default_actions." + key) ? defaultSettings.get(key) : 0);
 		
-		if ("others".equals(type)) folderSettings.set("save", null);
+		if ("others".equals(type)) folderSettings.set("save", 0);
 		//plugin.saveConfig(); //not for production (overwrites string-based times with integers)
+		
+		return true;
 	}
 	
 	public long getInterval(final Process process) {
@@ -210,11 +222,11 @@ public class Config {
 	}
 	
 	public long getInterval(final String type, final String name, final String key) {
-		return config.getInt(type + "." + name + "." + key, 0) * 1000L;
+		return getInt(type + "." + name + "." + key, 0) * 1000L;
 	}
 	
 	protected List<String> getFilter(final Process process, final String key) {
-		return config.getStringList(process.getType() + "." + process.getName() + ".exclude-" + key);
+		return getStringList(process.getType() + "." + process.getName() + ".exclude-" + key);
 	}
 	
 	public FilenameFilter getFilenameFilter(final Process process) {
@@ -227,30 +239,44 @@ public class Config {
 	}
 	
 	public String getDir(final String dir) {
-		return new File(config.getString("directories." + dir)).getPath();
+		return new File(getString("directories." + dir)).getPath();
 	}
 	
 	public File getDir(final String dir, final Process process) {
-		return new File(config.getString("directories." + dir), process.getName());
+		return new File(getString("directories." + dir), process.getName());
 	}
 	
 	public String getDestFormat() {
-		return config.getString("destination.format");
+		return getString("destination.format");
 	}
 	
 	public boolean getDestPrepend() {
-		return config.getBoolean("destination.prepend-world");
+		return getBoolean("destination.prepend-world");
 	}
 	
 	public int getInt(final Process process, final String key) {
-		return config.getInt(process.getType() + "." + process.getName() + "." + key, 0);
+		return getInt(process.getType() + "." + process.getName() + "." + key, 0);
 	}
 	
 	public Set<String> getOthers() {
-		return config.getConfigurationSection("others").getKeys(false);
+		return getConfigurationSection("others").getKeys(false);
 	}
 	
-	class SourceFilenameFilter implements FilenameFilter {
+	public boolean hasDropboxAction() {
+		if (getBoolean("default_actions.dropbox", false)) return true;
+		
+		for (final String type : Arrays.asList("worlds", "others")) {
+			final ConfigurationSection section = getConfigurationSection(type);
+			for (final String key : section.getKeys(false)) {
+				final Object object = section.get(key + ".dropbox");
+				if (object != null && (!(object instanceof Boolean) || (Boolean) object == true)) return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private class SourceFilenameFilter implements FilenameFilter {
 		private final List<String> folders;
 		private final List<String> types;
 		
@@ -274,19 +300,5 @@ public class Config {
 			return true;
 		}
 		
-	}
-	
-	public boolean hasDropboxAction() {
-		if (config.getBoolean("default_actions.dropbox", false)) return true;
-		
-		for (final String type : Arrays.asList("worlds", "others")) {
-			final ConfigurationSection section = config.getConfigurationSection(type);
-			for (final String key : section.getKeys(false)) {
-				final Object object = section.get(key + ".dropbox");
-				if (object != null && (!(object instanceof Boolean) || (Boolean) object == true)) return true;
-			}
-		}
-		
-		return false;
 	}
 }

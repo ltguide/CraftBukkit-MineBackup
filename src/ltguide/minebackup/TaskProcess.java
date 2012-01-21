@@ -11,14 +11,14 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.logging.Level;
 
-import ltguide.debug.Debug;
-import ltguide.minebackup.data.Command;
-import ltguide.minebackup.data.Message;
+import ltguide.base.Base;
+import ltguide.base.Debug;
+import ltguide.base.data.Message;
+import ltguide.base.utils.DirUtils;
+import ltguide.base.utils.ZipUtils;
+import ltguide.minebackup.data.Commands;
 import ltguide.minebackup.data.Process;
-import ltguide.minebackup.utils.DirUtils;
-import ltguide.minebackup.utils.ZipUtils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
@@ -44,7 +44,7 @@ public class TaskProcess extends Thread {
 	
 	public void checkQueue(final boolean fill) {
 		msecs = Calendar.getInstance().getTimeInMillis();
-		if (Debug.ON) plugin.ifDebug("checkQueue(); fill=" + fill);
+		if (Debug.ON) Debug.info("checkQueue(); fill=" + fill);
 		
 		final List<String> actions = new ArrayList<String>(Arrays.asList("save", "copy", "compress", "dropbox"));
 		if (fill) {
@@ -62,14 +62,15 @@ public class TaskProcess extends Thread {
 	private void checkQueue(final List<String> actions, final boolean fill, final String type, final String name) {
 		long next = 0L;
 		long interval;
-		final boolean load = plugin.persist.load(name, type);
 		
-		if (fill || plugin.persist.isDirty(type, name) || load) {
-			if (Debug.ON) plugin.ifDebug("checking " + name);
+		final boolean load = plugin.config.load(type, name);
+		
+		if (fill || load || plugin.persist.isDirty(type, name)) {
+			if (Debug.ON) Debug.info("checking " + name);
 			
 			for (final String action : actions)
 				if ((interval = plugin.config.getInterval(type, name, action)) != 0 && ((next = plugin.persist.getNext(type, name, action)) < msecs || load)) {
-					if (Debug.ON) plugin.ifDebug(" | " + action + " time=" + next + " interval=" + interval);
+					if (Debug.ON) Debug.info(" | " + action + " time=" + next + " interval=" + interval);
 					final Process process = new Process(type, name, action, next);
 					
 					if (next == 0L) {
@@ -88,9 +89,9 @@ public class TaskProcess extends Thread {
 	}
 	
 	@Override public void run() {
-		if (Debug.ON) plugin.ifDebug("TaskProcess run()");
+		if (Debug.ON) Debug.info("TaskProcess run()");
 		if (plugin.isWorking(this)) {
-			plugin.log(" - TaskProcess already working - it's already been a minute?!");
+			Base.info(" - TaskProcess already working - it's already been a minute?!");
 			return;
 		}
 		
@@ -104,7 +105,7 @@ public class TaskProcess extends Thread {
 	}
 	
 	private void runOnce() {
-		if (Debug.ON) plugin.ifDebug("runOnce() @ " + msecs);
+		if (Debug.ON) Debug.info("runOnce() @ " + msecs);
 		
 		checkQueue(false);
 		
@@ -128,7 +129,7 @@ public class TaskProcess extends Thread {
 			}
 			
 		}
-		else if (Debug.ON) plugin.ifDebug("p \\ but nothing in queue");
+		else if (Debug.ON) Debug.info("p \\ but nothing in queue");
 		
 		plugin.setWorking(this, false);
 	}
@@ -141,7 +142,7 @@ public class TaskProcess extends Thread {
 		
 		reload();
 		
-		plugin.broadcast(null, Command.NOW.getBroadcast(), Message.BACKUP_DONE.toString());
+		Base.broadcast(null, Commands.NOW.handle.getBroadcast(), Message.getText("BACKUP_DONE"));
 		plugin.setWorking(this, false);
 	}
 	
@@ -155,53 +156,53 @@ public class TaskProcess extends Thread {
 	}
 	
 	private void process(final Process process) {
-		if (Debug.ON) plugin.ifDebug("process queue: " + process.getName() + " " + process.getAction() + " @ " + process.getNext());
+		if (Debug.ON) Debug.info("process queue: " + process.getName() + " " + process.getAction() + " @ " + process.getNext());
 		
 		final World world = plugin.getServer().getWorld(process.getName());
 		
 		if ("save".equals(process.getAction())) {
 			if (world == null) return;
-			plugin.log(" * saving " + process.getName());
 			
-			final long start = System.nanoTime();
+			Base.info(" * saving " + process.getName());
+			Base.startTime();
 			
 			try {
 				plugin.callSync("save", world).get();
 			}
 			catch (final Exception e) {
-				plugin.logException(e, "");
+				Base.logException(e, "");
 			}
 			
-			plugin.debug("\t\\ done " + plugin.duration(start));
+			Base.debug("\t\\ done " + Base.stopTime());
 		}
 		else if ("dropbox".equals(process.getAction())) {
-			if (plugin.dropboxRunning() && plugin.persist.addDropboxUpload(process)) plugin.log(" * queuing upload of " + process.getName());
+			if (plugin.dropboxRunning() && plugin.persist.addDropboxUpload(process)) Base.info(" * queuing upload of " + process.getName());
 		}
 		else {
-			plugin.log(" * " + process.getAction() + "ing " + process.getName());
-			
 			final String format = getFormat(process.getName(), world);
 			final String backupDir = plugin.config.getDir("destination", process).getPath();
 			final File sourceDir = plugin.config.getDir(process.getType(), process);
 			final String prepend = plugin.config.getDestPrepend() ? process.getName() : null;
 			final FilenameFilter filter = plugin.config.getFilenameFilter(process);
 			File target = null;
-			final long start = System.nanoTime();
+			
+			Base.info(" * " + process.getAction() + "ing " + process.getName());
+			Base.startTime();
 			
 			try {
-				if ("copy".equals(process.getAction())) DirUtils.copyDir(plugin, sourceDir, target = new File(backupDir, format), prepend, filter);
-				else ZipUtils.zipDir(plugin, sourceDir, target = new File(backupDir, format + ".zip"), prepend, plugin.config.getInt(process, "compression_level"), filter);
+				if ("copy".equals(process.getAction())) DirUtils.copyDir(sourceDir, target = new File(backupDir, format), prepend, filter);
+				else ZipUtils.zipDir(sourceDir, target = new File(backupDir, format + ".zip"), prepend, plugin.config.getInt(process, "compression_level"), filter);
 				
-				plugin.debug("\t\\ done " + plugin.duration(start));
+				Base.debug("\t\\ done " + Base.stopTime());
 				
 				plugin.persist.addKeep(process, target);
 			}
 			catch (final Exception e) {
-				plugin.log("\t\\ failed");
-				plugin.logException(e, process.getAction() + ": " + sourceDir + " -> " + target);
+				Base.info("\t\\ failed");
+				Base.logException(e, process.getAction() + ": " + sourceDir + " -> " + target);
 				
 				DirUtils.delete(target);
-				if (target.exists()) plugin.log(Level.WARNING, "unable to delete: " + target);
+				if (target.exists()) Base.warning("unable to delete: " + target);
 			}
 		}
 	}

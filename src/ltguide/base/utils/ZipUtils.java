@@ -1,4 +1,4 @@
-package ltguide.minebackup.utils;
+package ltguide.base.utils;
 
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -11,16 +11,15 @@ import java.io.InputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import ltguide.minebackup.MineBackup;
+import ltguide.base.Base;
 
 public class ZipUtils {
 	private static final int BUFFER_SIZE = 4 * 1024;
-	private static MineBackup plugin;
 	private static FilenameFilter filter;
 	private static String prepend;
 	private static ZipOutputStream zipOutStream;
 	
-	public static void zipDir(final MineBackup plugin, final File srcDir, final File destFile, String prepend, final int level, final FilenameFilter filter) throws FileNotFoundException, IOException {
+	public static void zipDir(final File srcDir, final File destFile, String prepend, final int level, final FilenameFilter filter) throws FileNotFoundException, IOException {
 		destFile.getParentFile().mkdirs();
 		final FileOutputStream outStream = new FileOutputStream(destFile);
 		
@@ -38,7 +37,6 @@ public class ZipUtils {
 					}
 					else prepend = "";
 					
-					ZipUtils.plugin = plugin;
 					ZipUtils.prepend = prepend;
 					ZipUtils.filter = filter;
 					
@@ -88,7 +86,7 @@ public class ZipUtils {
 					if (len > 0) zipOutStream.write(buf, 0, len);
 			}
 			catch (final IOException e) {
-				if ("The process cannot access the file because another process has locked a portion of the file".equals(e.getMessage())) plugin.debug("\t\\ unable to read from: " + srcFile);
+				if ("The process cannot access the file because another process has locked a portion of the file".equals(e.getMessage())) Base.debug("\t\\ unable to read from: " + srcFile);
 				else throw e;
 			}
 			finally {

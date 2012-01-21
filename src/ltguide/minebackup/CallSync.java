@@ -18,12 +18,12 @@ public class CallSync implements Callable<Boolean> {
 	
 	@Override public Boolean call() {
 		if ("save".equals(action)) {
-			world.save();
-			
 			for (final Player player : world.getPlayers())
 				player.saveData();
+			
+			world.save();
 		}
-		else if ("count".equals(action)) plugin.persist.hasPlayers(world);
+		else if ("count".equals(action)) return plugin.persist.hasPlayers(world);
 		
 		return false;
 	}

@@ -1,27 +1,27 @@
-package ltguide.minebackup.exceptions;
+package ltguide.base.exceptions;
 
-@SuppressWarnings("serial") public class DropboxException extends Exception {
+@SuppressWarnings("serial") public class HttpException extends Exception {
 	
-	protected DropboxException() {
+	protected HttpException() {
 		super();
 	}
 	
-	public DropboxException(final String message) {
+	public HttpException(final String message) {
 		super(message);
 	}
 	
-	public DropboxException(final Exception e) {
+	public HttpException(final Exception e) {
 		super(e);
 	}
 	
-	public DropboxException(final int code) {
+	public HttpException(final int code) {
 		super(getMsg(code));
 	}
 	
 	public static String getMsg(final int code) {
 		switch (code) {
 			case 401:
-				return "UNAUTHORIZED: Dropbox configuration needs to be set again.";
+				return "UNAUTHORIZED: Configuration needs to be set again.";
 			case 500:
 				return "INTERNAL_SERVER_ERROR: Try again later.";
 			case 502:

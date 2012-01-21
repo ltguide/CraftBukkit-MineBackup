@@ -7,9 +7,10 @@ import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import ltguide.debug.Debug;
-import ltguide.minebackup.exceptions.DropboxException;
-import ltguide.minebackup.utils.HttpUtils;
+import ltguide.base.Base;
+import ltguide.base.Debug;
+import ltguide.base.exceptions.HttpException;
+import ltguide.base.utils.HttpUtils;
 
 public class TaskDropbox extends Thread {
 	private final MineBackup plugin;
@@ -34,37 +35,37 @@ public class TaskDropbox extends Thread {
 	}
 	
 	@Override public void run() {
-		if (Debug.ON) plugin.ifDebug("TaskDropbox run()");
+		if (Debug.ON) Debug.info("TaskDropbox run()");
 		
 		if (plugin.isWorking()) {
-			plugin.debug(" - TaskDropbox not checking upload queue because something else is already in progress");
+			Base.debug(" - TaskDropbox not checking upload queue because something else is already in progress");
 			return;
 		}
 		
 		final String target = plugin.persist.getDropboxUpload();
 		if (target == null) {
-			if (Debug.ON) plugin.ifDebug("d \\ but nothing in queue");
+			if (Debug.ON) Debug.info("d \\ but nothing in queue");
 			return;
 		}
 		
 		plugin.setWorking(this, true);
-		plugin.log(" * upload " + target);
+		Base.info(" * upload " + target);
 		
 		final String path = HttpUtils.encode(target.substring(plugin.config.getDir("destination").length() + 1)).replace("%2F", "/").replace("%5C", "/");
-		final long start = System.nanoTime();
+		Base.startTime();
 		
 		try {
 			HttpUtils.put("https://api-content.dropbox.com/1/files_put/sandbox/" + path, getAuth(path), new File(target));
-			plugin.debug("\t\\ upload done " + plugin.duration(start));
+			Base.debug("\t\\ upload done " + Base.stopTime());
 		}
-		catch (final DropboxException e) {
-			plugin.logException(e, path);
+		catch (final HttpException e) {
+			Base.logException(e, path);
 		}
 		
 		plugin.setWorking(this, false);
 	}
 	
-	public String getAuth(final String url) throws DropboxException {
+	public String getAuth(final String url) throws HttpException {
 		final long time = Calendar.getInstance().getTimeInMillis();
 		oauth.put("oauth_nonce", String.valueOf(new Random(time).nextLong()));
 		oauth.put("oauth_timestamp", String.valueOf(time / 1000));

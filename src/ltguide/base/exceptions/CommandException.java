@@ -1,15 +1,15 @@
-package ltguide.minebackup.exceptions;
+package ltguide.base.exceptions;
 
-import ltguide.minebackup.data.Message;
+import ltguide.base.data.Message;
 
 public class CommandException extends Exception {
 	private static final long serialVersionUID = 1L;
 	
 	public CommandException(final Message message) {
-		super(message.toString());
+		super(message.getText());
 	}
 	
 	public CommandException(final Message message, final Object... args) {
-		super(message.toString(args));
+		super(message.getText(args));
 	}
 }

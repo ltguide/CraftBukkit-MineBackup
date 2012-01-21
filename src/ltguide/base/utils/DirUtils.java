@@ -1,4 +1,4 @@
-package ltguide.minebackup.utils;
+package ltguide.base.utils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,11 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-import ltguide.minebackup.MineBackup;
+import ltguide.base.Base;
 
 public class DirUtils {
 	private static final int BUFFER_SIZE = 4 * 1024;
-	private static MineBackup plugin;
 	
 	public static void delete(final File target) {
 		if (target.isDirectory()) for (final File child : target.listFiles())
@@ -21,10 +20,8 @@ public class DirUtils {
 		target.delete();
 	}
 	
-	public static void copyDir(final MineBackup plugin, final File srcDir, File destDir, final String prepend, final FilenameFilter filter) throws IOException {
+	public static void copyDir(final File srcDir, File destDir, final String prepend, final FilenameFilter filter) throws IOException {
 		if (prepend != null) destDir = new File(destDir, prepend);
-		
-		DirUtils.plugin = plugin;
 		
 		copyDir(srcDir, destDir, filter);
 	}
@@ -53,7 +50,7 @@ public class DirUtils {
 					if (len > 0) outStream.write(buf, 0, len);
 			}
 			catch (final IOException e) {
-				if ("The process cannot access the file because another process has locked a portion of the file".equals(e.getMessage())) plugin.debug("\t\\ unable to read from: " + srcFile);
+				if ("The process cannot access the file because another process has locked a portion of the file".equals(e.getMessage())) Base.debug("\t\\ unable to read from: " + srcFile);
 				else throw e;
 			}
 		}
