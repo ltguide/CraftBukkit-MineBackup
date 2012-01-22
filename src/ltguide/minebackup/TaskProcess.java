@@ -128,6 +128,7 @@ public class TaskProcess extends Thread {
 				plugin.persist.setNext(process);
 			}
 			
+			if (Debug.ON) Debug.info("~ total " + Base.stopTime(msecs));
 		}
 		else if (Debug.ON) Debug.info("p \\ but nothing in queue");
 		
@@ -142,6 +143,7 @@ public class TaskProcess extends Thread {
 		
 		reload();
 		
+		Base.debug("~ total " + Base.stopTime(msecs));
 		Base.broadcast(null, Commands.NOW.handle.getBroadcast(), Message.getText("BACKUP_DONE"));
 		plugin.setWorking(this, false);
 	}

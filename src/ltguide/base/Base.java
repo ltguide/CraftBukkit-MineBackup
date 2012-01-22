@@ -87,6 +87,10 @@ public class Base {
 	}
 	
 	public static String stopTime() {
+		return stopTime(startTime);
+	}
+	
+	public static String stopTime(final long startTime) {
 		return String.format("%.2fms", (System.nanoTime() - startTime) * 1e-6);
 	}
 }
