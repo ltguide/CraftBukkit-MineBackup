@@ -48,6 +48,9 @@ public class TaskDropbox extends Thread {
 			return;
 		}
 		
+		final File file = new File(target);
+		if (!file.exists()) return;
+		
 		plugin.setWorking(this, true);
 		Base.info(" * upload " + target);
 		
@@ -55,7 +58,7 @@ public class TaskDropbox extends Thread {
 		Base.startTime();
 		
 		try {
-			HttpUtils.put("https://api-content.dropbox.com/1/files_put/sandbox/" + path, getAuth(path), new File(target));
+			HttpUtils.put("https://api-content.dropbox.com/1/files_put/sandbox/" + path, getAuth(path), file);
 			Base.debug("\t\\ upload done " + Base.stopTime());
 		}
 		catch (final HttpException e) {

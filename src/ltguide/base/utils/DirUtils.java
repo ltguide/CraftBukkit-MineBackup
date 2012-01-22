@@ -11,8 +11,6 @@ import java.io.OutputStream;
 import ltguide.base.Base;
 
 public class DirUtils {
-	private static final int BUFFER_SIZE = 4 * 1024;
-	
 	public static void delete(final File target) {
 		if (target.isDirectory()) for (final File child : target.listFiles())
 			delete(child);
@@ -42,7 +40,7 @@ public class DirUtils {
 		final InputStream inStream = new FileInputStream(srcFile);
 		final OutputStream outStream = new FileOutputStream(destFile);
 		try {
-			final byte[] buf = new byte[BUFFER_SIZE];
+			final byte[] buf = new byte[Base.bufferSize];
 			int len;
 			
 			try {

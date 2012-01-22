@@ -14,7 +14,6 @@ import java.util.zip.ZipOutputStream;
 import ltguide.base.Base;
 
 public class ZipUtils {
-	private static final int BUFFER_SIZE = 4 * 1024;
 	private static FilenameFilter filter;
 	private static String prepend;
 	private static ZipOutputStream zipOutStream;
@@ -24,7 +23,7 @@ public class ZipUtils {
 		final FileOutputStream outStream = new FileOutputStream(destFile);
 		
 		try {
-			final BufferedOutputStream bufOutStream = new BufferedOutputStream(outStream, BUFFER_SIZE);
+			final BufferedOutputStream bufOutStream = new BufferedOutputStream(outStream, Base.bufferSize);
 			try {
 				zipOutStream = new ZipOutputStream(bufOutStream);
 				try {
@@ -78,7 +77,7 @@ public class ZipUtils {
 			zipEntry.setTime(srcFile.lastModified());
 			zipOutStream.putNextEntry(zipEntry);
 			
-			final byte[] buf = new byte[BUFFER_SIZE];
+			final byte[] buf = new byte[Base.bufferSize];
 			int len;
 			
 			try {

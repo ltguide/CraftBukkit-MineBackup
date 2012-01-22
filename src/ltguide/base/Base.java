@@ -12,6 +12,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class Base {
+	public static final int bufferSize = 4 * 1024;
+	
 	private static boolean debug = true;
 	private static Logger logger;
 	private static String name;
@@ -60,7 +62,7 @@ public class Base {
 	}
 	
 	public static void debug(final String msg) {
-		if (debug) Base.info(msg);
+		if (debug || Debug.ON) Base.info(msg);
 	}
 	
 	public static void send(final CommandSender sender, final String msg) {

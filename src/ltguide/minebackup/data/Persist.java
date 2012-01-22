@@ -14,6 +14,8 @@ import ltguide.minebackup.MineBackup;
 import org.bukkit.World;
 
 public class Persist extends Configuration {
+	private static final long maxDropboxSize = 180 * 1024 * 1024;
+	
 	public Persist(final MineBackup instance) {
 		super(instance, "persist.dat");
 		
@@ -79,15 +81,21 @@ public class Persist extends Configuration {
 		
 		keep.add(target.getPath());
 		
-		while (keep.size() > num) {
-			final String backup = keep.get(0);
-			keep.remove(0);
-			
-			Base.debug(" * deleting " + backup);
-			
+		if (keep.size() > num) {
+			Base.debug(" * deleting old backups");
 			Base.startTime();
-			
-			DirUtils.delete(new File(backup));
+
+			while (keep.size() > num) {
+				final String backup = keep.get(0);
+				keep.remove(0);
+				
+				final File file = new File(backup);
+				if (file.exists()) {
+					Base.debug(" | " + backup);
+					
+					DirUtils.delete(file);
+				}
+			}
 			
 			Base.debug("\t\\ done " + Base.stopTime());
 		}
@@ -100,20 +108,26 @@ public class Persist extends Configuration {
 		if (keep == null || keep.size() == 0) return false;
 		
 		Collections.reverse(keep);
-		String target = null;
 		for (final String name : keep)
-			if (name.endsWith(".zip")) {
-				target = name;
-				break;
-			}
-			else if (Debug.ON) Debug.info("not .zip: " + name);
+			if (name.endsWith(".zip")) return addDropboxUpload(name);
+			else if (Debug.ON) Debug.info("bad file for dropbox: " + name);
 		
-		if (target == null) return false;
+		return false;
+	}
+	
+	private boolean addDropboxUpload(final String name) {
+		final File file = new File(name);
+		if (!file.exists()) return false;
+		
+		if (file.length() > maxDropboxSize) {
+			Base.warning(name + ": file size exceeds maximum allowed by the API");
+			return false;
+		}
 		
 		List<String> upload = getStringList("dropbox.upload");
 		if (upload == null) upload = new ArrayList<String>();
 		
-		upload.add(target);
+		upload.add(name);
 		set("dropbox.upload", upload);
 		
 		return true;

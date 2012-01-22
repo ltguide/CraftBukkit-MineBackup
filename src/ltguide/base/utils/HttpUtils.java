@@ -15,8 +15,6 @@ import java.util.SortedMap;
 import ltguide.base.exceptions.HttpException;
 
 public class HttpUtils {
-	public static final long maxSize = 180 * 1024 * 1024;
-	
 	public static String responseGet(final String url) throws HttpException {
 		return new Scanner(get(url)).useDelimiter("\\A").next();
 	}
@@ -26,18 +24,14 @@ public class HttpUtils {
 	}
 	
 	public static InputStream put(final String url, final String auth, final File file) throws HttpException {
-		final int length = (int) file.length();
-		
-		if (length > maxSize) throw new HttpException("file size exceeds maximum allowed by the API");
-		if (length == 0L) throw new HttpException("file not found or empty");
-		
 		final HttpURLConnection connection = setupConnection(url);
 		connection.setRequestProperty("Authorization", auth);
 		
 		try {
+			final long length = file.length();
 			connection.setRequestMethod("PUT");
 			connection.setDoOutput(true);
-			connection.setFixedLengthStreamingMode(length);
+			connection.setFixedLengthStreamingMode((int) length);
 			connection.setRequestProperty("Content-Length", String.valueOf(length));
 			connection.setRequestProperty("Content-Encoding", "application/octet-stream");
 			
