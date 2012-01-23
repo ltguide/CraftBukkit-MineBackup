@@ -41,7 +41,6 @@ public class MineBackup extends JavaPlugin {
 		Base.init(this);
 		persist = new Persist(this);
 		config = new Config(this);
-		Base.setDebug(config.getBoolean("debug"));
 		
 		for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(false);
@@ -64,7 +63,6 @@ public class MineBackup extends JavaPlugin {
 		config.reload();
 		persist.reload();
 		process.reload();
-		Base.setDebug(config.getBoolean("debug"));
 		spawnDropbox();
 	}
 	

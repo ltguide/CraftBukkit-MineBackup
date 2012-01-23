@@ -99,6 +99,7 @@ public class Config extends Configuration {
 	
 	private void checkConfig() {
 		options().copyDefaults(true);
+		Base.setDebug(getBoolean("debug"));
 		
 		final ConfigurationSection defaultSettings = getConfigurationSection("default_settings");
 		for (final String key : Arrays.asList("save", "copy", "compress", "dropbox"))
@@ -113,7 +114,6 @@ public class Config extends Configuration {
 		for (final Commands command : Commands.values()) {
 			final String path = "commands." + command.name().toLowerCase();
 			
-			//command.setup(getString(path + ".description"), getBroadcast(get(path + ".broadcast")));
 			Command.setConfig(command.name(), getString(path + ".description"), getBroadcast(get(path + ".broadcast")));
 		}
 	}
