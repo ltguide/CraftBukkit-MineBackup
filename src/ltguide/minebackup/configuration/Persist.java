@@ -1,4 +1,4 @@
-package ltguide.minebackup.data;
+package ltguide.minebackup.configuration;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -10,6 +10,7 @@ import ltguide.base.Debug;
 import ltguide.base.data.Configuration;
 import ltguide.base.utils.DirUtils;
 import ltguide.minebackup.MineBackup;
+import ltguide.minebackup.data.Process;
 
 import org.bukkit.World;
 

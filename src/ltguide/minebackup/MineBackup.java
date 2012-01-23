@@ -7,8 +7,8 @@ import java.util.concurrent.Future;
 
 import ltguide.base.Base;
 import ltguide.base.Debug;
-import ltguide.minebackup.data.Config;
-import ltguide.minebackup.data.Persist;
+import ltguide.minebackup.configuration.Config;
+import ltguide.minebackup.configuration.Persist;
 import ltguide.minebackup.listeners.CommandListener;
 import ltguide.minebackup.listeners.PlayerListener;
 import ltguide.minebackup.listeners.WorldListener;

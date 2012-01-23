@@ -1,4 +1,4 @@
-package ltguide.minebackup.data;
+package ltguide.minebackup.configuration;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -13,6 +13,9 @@ import ltguide.base.Debug;
 import ltguide.base.data.Command;
 import ltguide.base.data.Configuration;
 import ltguide.base.data.Message;
+import ltguide.minebackup.data.Commands;
+import ltguide.minebackup.data.Messages;
+import ltguide.minebackup.data.Process;
 
 import org.bukkit.Server;
 import org.bukkit.configuration.ConfigurationSection;
