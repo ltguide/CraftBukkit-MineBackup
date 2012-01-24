@@ -82,8 +82,8 @@ public class Base {
 		Base.broadcast(sender, command.getBroadcast(), command.getMessage(sender.getName()));
 	}
 	
-	public static void startTime() {
-		startTime = System.nanoTime();
+	public static long startTime() {
+		return startTime = System.nanoTime();
 	}
 	
 	public static String stopTime() {

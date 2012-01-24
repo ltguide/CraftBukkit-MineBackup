@@ -28,6 +28,7 @@ public class TaskProcess extends Thread {
 	private boolean quick;
 	private final SortedSet<Process> queue = new TreeSet<Process>(Process.comparator);
 	private long msecs;
+	private long startTime;
 	
 	public TaskProcess(final MineBackup plugin) {
 		this.plugin = plugin;
@@ -44,7 +45,8 @@ public class TaskProcess extends Thread {
 	
 	public void checkQueue(final boolean fill) {
 		msecs = Calendar.getInstance().getTimeInMillis();
-		if (Debug.ON) Debug.info("checkQueue(); fill=" + fill);
+		startTime = Base.startTime();
+		if (Debug.ON) Debug.info("checkQueue(); fill=" + fill + "; msecs=" + msecs);
 		
 		List<String> actions = Arrays.asList("save", "copy", "compress", "cleanup", "dropbox");
 		if (fill) {
@@ -106,8 +108,6 @@ public class TaskProcess extends Thread {
 	}
 	
 	private void runOnce() {
-		if (Debug.ON) Debug.info("runOnce() @ " + msecs);
-		
 		checkQueue(false);
 		
 		if (queue.size() > 0) {
@@ -129,7 +129,7 @@ public class TaskProcess extends Thread {
 				plugin.persist.setNext(process);
 			}
 			
-			if (Debug.ON) Debug.info("~ total " + Base.stopTime(msecs));
+			if (Debug.ON) Debug.info("+ total " + Base.stopTime(startTime));
 		}
 		else if (Debug.ON) Debug.info("p \\ but nothing in queue");
 		
@@ -144,7 +144,7 @@ public class TaskProcess extends Thread {
 		
 		reload();
 		
-		Base.debug("~ total " + Base.stopTime(msecs));
+		Base.debug("+ total " + Base.stopTime(startTime));
 		Base.broadcast(null, Commands.NOW.handle.getBroadcast(), Message.getText("BACKUP_DONE"));
 		plugin.setWorking(this, false);
 	}
