@@ -235,7 +235,6 @@ public class Config extends Configuration {
 		ConfigurationSection folderSettings = getConfigurationSection(type + "." + name);
 		if (folderSettings == null) folderSettings = createSection(type + "." + name);
 		
-		//final ConfigurationSection defaultActions = getConfigurationSection("default_actions");
 		final ConfigurationSection defaultSettings = getConfigurationSection("default_settings");
 		
 		for (final String key : defaultSettings.getKeys(false))

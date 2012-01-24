@@ -55,7 +55,7 @@ public class MineBackup extends JavaPlugin {
 		
 		Base.info("v" + getDescription().getVersion() + " enabled");
 		
-		spawnProcess(60); // 60
+		spawnProcess(60);
 		spawnDropbox();
 	}
 	
