@@ -48,8 +48,7 @@ public class DirUtils {
 					if (len > 0) outStream.write(buf, 0, len);
 			}
 			catch (final IOException e) {
-				if ("The process cannot access the file because another process has locked a portion of the file".equals(e.getMessage())) Base.debug("\t\\ unable to read from: " + srcFile);
-				else throw e;
+				Base.debug("\t\\ unable to copy file: " + srcFile);
 			}
 		}
 		finally {
