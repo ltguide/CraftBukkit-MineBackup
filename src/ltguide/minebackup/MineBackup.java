@@ -99,7 +99,7 @@ public class MineBackup extends JavaPlugin {
 		
 		if (dropboxRunning()) getServer().getScheduler().cancelTask(dropboxId);
 		
-		if (!config.hasDropboxAction() || !dropbox.hasDropboxAuth()) return;
+		if (!config.hasAction("dropbox") || !dropbox.hasDropboxAuth()) return;
 		if (Debug.ON) Debug.info("spawnDropbox()");
 		
 		dropboxId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, dropbox, 30 * 20L, 300 * 20L);

@@ -4,24 +4,26 @@ default_actions:
   save: true
   copy: false
   compress: false
+  cleanup: false
   dropbox: false
 default_settings:
   save: 15m
   copy: 1h
   compress: 1h
   compression_level: 9
+  cleanup: '2:00'
   dropbox: '3:00'
   keep: 24
 worlds:
-  someworldname:
+  yourworldname:
     save: true
     compress: true
     dropbox: false
-  someworldname_nether:
+  yourworldname_nether:
     save: 30m
     compress: 3h
     keep: 8
-  someworldname_the_end:
+  yourworldname_the_end:
     save: 30m
     copy: 6h
     keep: 4

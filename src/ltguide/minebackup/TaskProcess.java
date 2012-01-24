@@ -46,9 +46,10 @@ public class TaskProcess extends Thread {
 		msecs = Calendar.getInstance().getTimeInMillis();
 		if (Debug.ON) Debug.info("checkQueue(); fill=" + fill);
 		
-		final List<String> actions = new ArrayList<String>(Arrays.asList("save", "copy", "compress", "dropbox"));
+		List<String> actions = Arrays.asList("save", "copy", "compress", "cleanup", "dropbox");
 		if (fill) {
 			reload();
+			actions = new ArrayList<String>(actions);
 			actions.remove("dropbox");
 		}
 		
@@ -177,6 +178,7 @@ public class TaskProcess extends Thread {
 			
 			Base.debug("\t\\ done " + Base.stopTime());
 		}
+		else if ("cleanup".equals(process.getAction())) plugin.persist.processKeep(process, null);
 		else if ("dropbox".equals(process.getAction())) {
 			if (plugin.dropboxRunning() && plugin.persist.addDropboxUpload(process)) Base.info(" * queuing upload of " + process.getName());
 		}
@@ -197,7 +199,7 @@ public class TaskProcess extends Thread {
 				
 				Base.debug("\t\\ done " + Base.stopTime());
 				
-				plugin.persist.addKeep(process, target);
+				plugin.persist.processKeep(process, target);
 			}
 			catch (final Exception e) {
 				Base.info("\t\\ failed");

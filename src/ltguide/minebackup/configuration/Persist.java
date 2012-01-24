@@ -73,19 +73,19 @@ public class Persist extends Configuration {
 		set(process.getType() + "." + process.getName() + "." + process.getAction() + ".next", process.getNext());
 	}
 	
-	public void addKeep(final Process process, final File target) {
+	public void processKeep(final Process process, final File target) {
 		final int num = ((MineBackup) plugin).config.getInt(process, "keep");
 		final String path = process.getType() + "." + process.getName() + ".keep";
 		
 		List<String> keep = getStringList(path);
 		if (keep == null) keep = new ArrayList<String>();
 		
-		keep.add(target.getPath());
+		if (target != null) keep.add(target.getPath());
 		
-		if (keep.size() > num) {
+		if (keep.size() > num && (target == null || ((MineBackup) plugin).config.getInterval(process.getType(), process.getName(), "cleanup") == 0)) {
 			Base.debug(" * deleting old backups");
 			Base.startTime();
-
+			
 			while (keep.size() > num) {
 				final String backup = keep.get(0);
 				keep.remove(0);

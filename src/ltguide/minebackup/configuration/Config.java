@@ -47,16 +47,25 @@ public class Config extends Configuration {
 		if (Debug.ON) Debug.info("checking config version");
 		if (isSet("version-nomodify")) {
 			if (Debug.ON) Debug.info("version isSet");
-			final String version = plugin.getDescription().getVersion();
+			
+			final String newVersion = plugin.getDescription().getVersion();
 			final String oldVersion = getString("version-nomodify");
+			if (newVersion.equals(oldVersion)) return false;
 			
-			if (version.equals(oldVersion)) return false;
-			if (Debug.ON) Debug.info("upgrading config");
-			set("version-nomodify", version);
+			Base.warning("migrating config from " + oldVersion);
+			set("version-nomodify", newVersion);
 			
-			//if (oldVersion == "0.x") {
-			//	//upgrade
-			//}
+			final int[] oldNum = getVersionInt(oldVersion);
+			if (oldNum.length != 3) {
+				Base.warning("\t\\ using default config (version tags altered)");
+				return true;
+			}
+			
+			if (versionCompare(oldNum, new int[] { 0, 5, 5 })) {
+				final List<String> types = getStringList("others.plugins.exclude-types");
+				types.add("lck");
+				set("others.plugins.exclude-types", types);
+			}
 		}
 		else if (isSet("backup")) {
 			Base.warning("migrating config from v0.4.8.1+");
@@ -100,12 +109,34 @@ public class Config extends Configuration {
 		return true;
 	}
 	
+	private int[] getVersionInt(final String version) {
+		final String[] split = version.split("\\.");
+		final int[] num = new int[split.length];
+		
+		for (int i = 0; i < split.length; i++)
+			try {
+				num[i] = Integer.parseInt(split[i]);
+			}
+			catch (final NumberFormatException e) {
+				num[i] = 0;
+			}
+		
+		return num;
+	}
+	
+	private boolean versionCompare(final int[] old, final int[] current) {
+		for (int i = 0; i < current.length; i++)
+			if (old[i] > current[i]) return false;
+		
+		return true;
+	}
+	
 	private void checkConfig() {
 		options().copyDefaults(true);
 		Base.setDebug(getBoolean("debug"));
 		
 		final ConfigurationSection defaultSettings = getConfigurationSection("default_settings");
-		for (final String key : Arrays.asList("save", "copy", "compress", "dropbox"))
+		for (final String key : Arrays.asList("save", "copy", "compress", "cleanup", "dropbox"))
 			defaultSettings.set(key, getTime(defaultSettings, key));
 		
 		fixIntRange(defaultSettings, "compression_level", 0, 9);
@@ -265,13 +296,13 @@ public class Config extends Configuration {
 		return getConfigurationSection("others").getKeys(false);
 	}
 	
-	public boolean hasDropboxAction() {
-		if (getBoolean("default_actions.dropbox", false)) return true;
+	public boolean hasAction(final String action) {
+		if (getBoolean("default_actions." + action, false)) return true;
 		
 		for (final String type : Arrays.asList("worlds", "others")) {
 			final ConfigurationSection section = getConfigurationSection(type);
 			for (final String key : section.getKeys(false)) {
-				final Object object = section.get(key + ".dropbox");
+				final Object object = section.get(key + "." + action);
 				if (object != null && (!(object instanceof Boolean) || (Boolean) object == true)) return true;
 			}
 		}
