@@ -184,11 +184,16 @@ public class TaskProcess extends Thread {
 		}
 		else {
 			final String format = getFormat(process.getName(), world);
-			final String backupDir = plugin.config.getDir("destination", process).getPath();
-			final File sourceDir = plugin.config.getDir(process.getType(), process);
 			final String prepend = plugin.config.getDestPrepend() ? process.getName() : null;
 			final FilenameFilter filter = plugin.config.getFilenameFilter(process);
 			File target = null;
+			final String backupDir = plugin.config.getDir("destination", process).getPath();
+			final File sourceDir = plugin.config.getDir(process.getType(), process);
+			
+			if (!sourceDir.exists()) {
+				Base.warning(String.format("%% unable to %s %s (check path: %s)", process.getAction(), process.getName(), sourceDir.getPath()));
+				return;
+			}
 			
 			Base.info(" * " + process.getAction() + "ing " + process.getName());
 			Base.startTime();
