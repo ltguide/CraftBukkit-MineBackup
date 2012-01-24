@@ -48,7 +48,7 @@ public class DirUtils {
 					if (len > 0) outStream.write(buf, 0, len);
 			}
 			catch (final IOException e) {
-				Base.debug("\t\\ unable to copy file: " + srcFile);
+				Base.debug(" | unable to copy file: " + srcFile);
 			}
 		}
 		finally {

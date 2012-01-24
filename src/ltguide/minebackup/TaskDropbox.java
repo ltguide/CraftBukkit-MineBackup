@@ -38,13 +38,13 @@ public class TaskDropbox extends Thread {
 		if (Debug.ON) Debug.info("TaskDropbox run()");
 		
 		if (plugin.isWorking()) {
-			Base.debug(" - TaskDropbox not checking upload queue because something else is already in progress");
+			Base.debug("not checking Dropbox upload queue because an action is in progress");
 			return;
 		}
 		
 		final String target = plugin.persist.getDropboxUpload();
 		if (target == null) {
-			if (Debug.ON) Debug.info("d \\ but nothing in queue");
+			if (Debug.ON) Debug.info("Dropbox - but nothing in queue");
 			return;
 		}
 		
@@ -52,14 +52,14 @@ public class TaskDropbox extends Thread {
 		if (!file.exists()) return;
 		
 		plugin.setWorking(this, true);
-		Base.info(" * upload " + target);
+		Base.info(" * uploading " + target);
 		
 		final String path = HttpUtils.encode(target.substring(plugin.config.getDir("destination").length() + 1)).replace("%2F", "/").replace("%5C", "/");
 		Base.startTime();
 		
 		try {
 			HttpUtils.put("https://api-content.dropbox.com/1/files_put/sandbox/" + path, getAuth(path), file);
-			Base.debug("\t\\ upload done " + Base.stopTime());
+			Base.debug("  \\ upload done " + Base.stopTime());
 		}
 		catch (final HttpException e) {
 			Base.logException(e, path);

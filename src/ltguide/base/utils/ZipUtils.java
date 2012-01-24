@@ -85,7 +85,7 @@ public class ZipUtils {
 					if (len > 0) zipOutStream.write(buf, 0, len);
 			}
 			catch (final IOException e) {
-				Base.debug("\t\\ unable to add file: " + srcFile);
+				Base.debug(" | unable to add file: " + srcFile);
 			}
 			finally {
 				zipOutStream.closeEntry();

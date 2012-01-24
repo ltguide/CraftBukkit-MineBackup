@@ -230,7 +230,7 @@ public class Config extends Configuration {
 		if (isLoaded(type, name)) return false;
 		loaded.add(type + "-" + name);
 		
-		Base.debug(" - loading config " + type + "\\" + name);
+		Base.debug("loading config for " + type + "\\" + name);
 		
 		ConfigurationSection folderSettings = getConfigurationSection(type + "." + name);
 		if (folderSettings == null) folderSettings = createSection(type + "." + name);

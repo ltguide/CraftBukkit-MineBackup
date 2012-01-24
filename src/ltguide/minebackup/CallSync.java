@@ -35,7 +35,7 @@ public class CallSync implements Callable<Boolean> {
 			for (final Chunk chunk : world.getLoadedChunks())
 				if (!keepChunk(chunk) && world.unloadChunk(chunk.getX(), chunk.getZ(), true, true)) chunks++;
 			
-			Base.debug("\t| unloaded " + chunks + " chunks @ " + Base.stopTime());
+			Base.debug(" | unloaded " + chunks + " chunks @ " + Base.stopTime());
 			
 			world.save();
 		}

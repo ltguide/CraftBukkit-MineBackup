@@ -83,7 +83,7 @@ public class Persist extends Configuration {
 		if (target != null) keep.add(target.getPath());
 		
 		if (keep.size() > num && (target == null || ((MineBackup) plugin).config.getInterval(process.getType(), process.getName(), "cleanup") == 0)) {
-			Base.debug(" * deleting old backups");
+			Base.debug(" * cleaning up " + process.getType() + "\\" + process.getName());
 			Base.startTime();
 			
 			while (keep.size() > num) {
@@ -92,13 +92,13 @@ public class Persist extends Configuration {
 				
 				final File file = new File(backup);
 				if (file.exists()) {
-					Base.debug(" | " + backup);
+					Base.debug(" | removing " + backup);
 					
 					DirUtils.delete(file);
 				}
 			}
 			
-			Base.debug("\t\\ done " + Base.stopTime());
+			Base.debug("  \\ done " + Base.stopTime());
 		}
 		
 		set(path, keep);

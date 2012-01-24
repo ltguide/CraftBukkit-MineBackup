@@ -129,9 +129,9 @@ public class TaskProcess extends Thread {
 				plugin.persist.setNext(process);
 			}
 			
-			if (Debug.ON) Debug.info("+ total " + Base.stopTime(startTime));
+			if (Debug.ON) Debug.info("> total " + Base.stopTime(startTime));
 		}
-		else if (Debug.ON) Debug.info("p \\ but nothing in queue");
+		else if (Debug.ON) Debug.info("runOnce() - but nothing in queue");
 		
 		plugin.setWorking(this, false);
 	}
@@ -144,7 +144,7 @@ public class TaskProcess extends Thread {
 		
 		reload();
 		
-		Base.debug("+ total " + Base.stopTime(startTime));
+		Base.debug("> total " + Base.stopTime(startTime));
 		Base.broadcast(null, Commands.NOW.handle.getBroadcast(), Message.getText("BACKUP_DONE"));
 		plugin.setWorking(this, false);
 	}
@@ -166,7 +166,7 @@ public class TaskProcess extends Thread {
 		if ("save".equals(process.getAction())) {
 			if (world == null) return;
 			
-			Base.info(" * saving " + process.getName());
+			logAction(" * saving %s\\%s", process);
 			Base.startTime();
 			
 			try {
@@ -176,11 +176,11 @@ public class TaskProcess extends Thread {
 				Base.logException(e, "");
 			}
 			
-			Base.debug("\t\\ done " + Base.stopTime());
+			Base.debug("  \\ done " + Base.stopTime());
 		}
 		else if ("cleanup".equals(process.getAction())) plugin.persist.processKeep(process, null);
 		else if ("dropbox".equals(process.getAction())) {
-			if (plugin.dropboxRunning() && plugin.persist.addDropboxUpload(process)) Base.info(" * queuing upload of " + process.getName());
+			if (plugin.dropboxRunning() && plugin.persist.addDropboxUpload(process)) logAction(" * queuing upload of latest %s\\%s", process);
 		}
 		else {
 			final String format = getFormat(process.getName(), world);
@@ -195,25 +195,29 @@ public class TaskProcess extends Thread {
 				return;
 			}
 			
-			Base.info(" * " + process.getAction() + "ing " + process.getName());
+			logAction(" * %3$sing %s\\%s", process);
 			Base.startTime();
 			
 			try {
 				if ("copy".equals(process.getAction())) DirUtils.copyDir(sourceDir, target = new File(backupDir, format), prepend, filter);
 				else ZipUtils.zipDir(sourceDir, target = new File(backupDir, format + ".zip"), prepend, plugin.config.getInt(process, "compression_level"), filter);
 				
-				Base.debug("\t\\ done " + Base.stopTime());
+				Base.debug("  \\ done " + Base.stopTime());
 				
 				plugin.persist.processKeep(process, target);
 			}
 			catch (final Exception e) {
-				Base.info("\t\\ failed");
+				Base.info("  \\ failed");
 				Base.logException(e, process.getAction() + ": " + sourceDir + " -> " + target);
 				
 				DirUtils.delete(target);
 				if (target.exists()) Base.warning("unable to delete: " + target);
 			}
 		}
+	}
+	
+	private void logAction(final String format, final Process process) {
+		Base.info(String.format(format, process.getType(), process.getName(), process.getAction()));
 	}
 	
 	private String padZero(final int i) {
