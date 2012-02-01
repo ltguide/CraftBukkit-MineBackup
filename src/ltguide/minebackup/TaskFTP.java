@@ -24,12 +24,14 @@ public class TaskFTP extends Thread {
         if (Debug.ON) Debug.info("TaskFTP run()");
 
         if (plugin.isWorking()) {
+            Base.info("action in progress");
             Base.debug("not checking FTP upload queue because an action is in progress");
             return;
         }
 
         String target = plugin.persist.getFTPUpload();
         if (target == null) {
+            Base.info("nothing in queue");
             if (Debug.ON) Debug.info("FTP - but nothing in queue");
             return;
         }
@@ -48,9 +50,10 @@ public class TaskFTP extends Thread {
 
         if (!ftpConfigOK){
             if (Debug.ON) Debug.info("FTP Configuration not correct");
+            Base.info("config not correct");
             return;
         }
-
+        Base.info("well almost there");
         String ftpTargetDir = ftpConfig.getString("ftptargetdir");
 
         plugin.setWorking(this, true);
