@@ -6,6 +6,7 @@ default_actions:
   compress: false
   cleanup: false
   dropbox: false
+  ftp: false
 default_settings:
   save: 15m
   copy: 1h
@@ -13,6 +14,7 @@ default_settings:
   compression_level: 9
   cleanup: '2:00'
   dropbox: '3:00'
+  ftp: '4:00'
   keep: 24
 worlds:
   yourworldname:
@@ -32,6 +34,7 @@ others:
     copy: false
     compress: false
     dropbox: false
+    ftp: false
     exclude-folders:
       - tiles
     exclude-types:
@@ -61,6 +64,12 @@ messages:
   backup_done: 'All backup actions have completed.'
   reload: '&aReloaded configuration. (%s)'
   dropbox: 'Dropbox authentication completed. (%s)'
+ftp:
+  ftphost: 'ftphost.com'
+  ftpport: 21
+  ftpuser: 'anonymous'
+  ftppassword: 'whatever'
+  ftptargetdir: 'directory'
 commands:
   status:
     description: 'Display the scheduled time and interval for each action in the queue.'
