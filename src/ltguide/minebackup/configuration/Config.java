@@ -20,6 +20,7 @@ import java.util.zip.Deflater;
 public class Config extends Configuration {
 	private final Set<String> loaded = new HashSet<String>();
     private ConfigurationSection ftpConfig;
+    private Config instance = this;
 
 	public Config(final JavaPlugin instance) {
 		super(instance, "config.yml");
@@ -308,6 +309,7 @@ public class Config extends Configuration {
 
 		return false;
 	}
+
 
 	private class SourceFilenameFilter implements FilenameFilter {
 		private final List<String> folders;
