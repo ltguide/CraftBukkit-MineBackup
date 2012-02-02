@@ -40,11 +40,12 @@ public class TaskProcess extends Thread {
         startTime = Base.startTime();
         if (Debug.ON) Debug.info("checkQueue(); fill=" + fill + "; msecs=" + msecs);
 
-        List<String> actions = Arrays.asList("save", "copy", "compress", "cleanup", "dropbox");
+        List<String> actions = Arrays.asList("save", "copy", "compress", "cleanup", "dropbox", "ftp");
         if (fill) {
             reload();
             actions = new ArrayList<String>(actions);
             actions.remove("dropbox");
+            actions.remove("ftp");
         }
 
         for (final String name : plugin.config.getOthers())

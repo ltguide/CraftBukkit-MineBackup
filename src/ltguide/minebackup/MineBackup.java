@@ -117,7 +117,6 @@ public class MineBackup extends JavaPlugin {
 
         if (!config.hasAction("ftp")) return;
         if (Debug.ON) Debug.info("spawnFTP()");
-        Base.info("hmm2");
         ftpId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, ftp, 30 * 20L, 300 * 20L);
     }
 

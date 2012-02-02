@@ -40,22 +40,24 @@ public class TaskFTP extends Thread {
         if (!file.exists()) return;
         boolean ftpConfigOK = true;
         String ftpUser = ftpConfig.getString("ftpuser");
+        if (Debug.ON) Debug.info("FtpUser: " + ftpUser);
         if (ftpUser.isEmpty()) ftpConfigOK = false;
         String ftpHost = ftpConfig.getString("ftphost");
+        if (Debug.ON) Debug.info("FtpHost: " + ftpHost);
         if (ftpHost.isEmpty()) ftpConfigOK = false;
         int ftpPort = ftpConfig.getInt("ftpport");
+        if (Debug.ON) Debug.info("FtpPort: " +ftpPort);
         if (ftpPort == 0 ) ftpConfigOK = false;
         String ftpPW = ftpConfig.getString("ftppassword");
+        if (Debug.ON) Debug.info("FtpPW: " + ftpPW);
         if (ftpPW.isEmpty()) ftpConfigOK = false;
 
         if (!ftpConfigOK){
             if (Debug.ON) Debug.info("FTP Configuration not correct");
-            Base.info("config not correct");
             return;
         }
-        Base.info("well almost there");
         String ftpTargetDir = ftpConfig.getString("ftptargetdir");
-
+        if (Debug.ON) Debug.info("FtpTargetDir: " + ftpTargetDir);
         plugin.setWorking(this, true);
         Base.info(" * uploading " + target);
 
