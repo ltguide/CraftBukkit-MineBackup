@@ -67,6 +67,16 @@ public class Config extends Configuration {
 				types.add("lck");
 				set("others.plugins.exclude-types", types);
 			}
+
+            if (versionCompare(oldNum, new int[] { 0,5,6})) {
+                set("default_actions.ftp",false);
+                set("others.plugins.ftp",false);
+                set("ftp.ftphost","ftphost.com");
+                set("ftp.ftpport",21);
+                set("ftp.ftpuser","anonymous");
+                set("ftp.ftppassword","donttellya");
+                set("ftp.ftptargetdir","adirectory");
+            }
 		}
 		else if (isSet("backup")) {
 			Base.warning("migrating config from v0.4.8.1+");
