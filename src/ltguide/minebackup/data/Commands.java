@@ -3,6 +3,7 @@ package ltguide.minebackup.data;
 import java.util.Arrays;
 
 import ltguide.base.data.Command;
+import ltguide.base.exceptions.CommandException;
 
 import org.bukkit.command.CommandSender;
 
@@ -21,11 +22,14 @@ public enum Commands {
 		Command.put(handle);
 	}
 	
-	public static Commands get(final CommandSender sender, final String label, final String[] args) {
+	public static Commands get(final CommandSender sender, final String label, final String[] args) throws CommandException {
 		try {
 			final Commands commands = valueOf(args[0].toUpperCase());
 			commands.handle.init(sender, label, Arrays.asList(args));
 			return commands;
+		}
+		catch (final CommandException e) {
+			throw e;
 		}
 		catch (final Exception e) {
 			for (final Commands commands : Commands.values())

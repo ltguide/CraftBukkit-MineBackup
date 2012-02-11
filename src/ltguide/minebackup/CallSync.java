@@ -25,7 +25,7 @@ public class CallSync implements Callable<Boolean> {
 	@Override public Boolean call() {
 		if ("save".equals(action)) {
 			for (final Player player : world.getPlayers())
-				player.saveData();
+				if (player.isOnline()) player.saveData();
 			
 			final Location spawn = world.getSpawnLocation();
 			x = (int) spawn.getX() >> 4;
