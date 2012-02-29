@@ -9,8 +9,6 @@ import ltguide.minebackup.listeners.PlayerListener;
 import ltguide.minebackup.listeners.WorldListener;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.event.Event;
-import org.bukkit.event.Event.Priority;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -50,9 +48,8 @@ public class MineBackup extends JavaPlugin {
 
         final PlayerListener playerListener = new PlayerListener(this);
         final PluginManager pm = getServer().getPluginManager();
-        pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Priority.Monitor, this);
-        pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Priority.Monitor, this);
-        pm.registerEvent(Event.Type.WORLD_SAVE, new WorldListener(this), Priority.Monitor, this);
+        pm.registerEvents(  playerListener,this);
+        pm.registerEvents( new WorldListener(this), this);
 
         Base.info("v" + getDescription().getVersion() + " enabled");
 
