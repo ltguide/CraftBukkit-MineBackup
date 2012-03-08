@@ -64,32 +64,34 @@ public class TaskProcess extends Thread {
 	}
 	
 	private void checkQueue(final HashSet<String> actions, final boolean fill, final String type, final String name) {
+		if (Debug.ON) Debug.info("checking " + name);
+		
 		long next = 0L;
 		long interval;
-		
 		final boolean loaded = plugin.config.load(type, name);
+		final boolean dirty = plugin.persist.isDirty(type, name) || fill;
 		
-		if (fill || loaded || plugin.persist.isDirty(type, name)) {
-			if (Debug.ON) Debug.info("checking " + name);
+		for (final String action : actions) {
+			if ((interval = plugin.config.getInterval(type, name, action)) == 0) continue;
+			if ((next = plugin.persist.getNext(type, name, action)) > msecs && !loaded) continue;
+			if (!dirty && next == 0L) continue;
 			
-			for (final String action : actions)
-				if ((interval = plugin.config.getInterval(type, name, action)) != 0 && ((next = plugin.persist.getNext(type, name, action)) < msecs || loaded)) {
-					if (Debug.ON) Debug.info(" | " + action + " time=" + next + " interval=" + interval);
-					final Process process = new Process(type, name, action, next);
-					
-					if (next == 0L) {
-						if (fill) interval = 0;
-						else if (interval < 0) interval = getNextExact(interval);
-						
-						process.setNext(msecs++ + interval);
-					}
-					
-					queue.add(process);
-					plugin.persist.setNext(process);
-				}
+			if (Debug.ON) Debug.info(" | " + action + " time=" + next + " interval=" + interval);
 			
-			plugin.persist.setClean(type, name);
+			final Process process = new Process(type, name, action, next);
+			
+			if (next == 0L) {
+				if (fill) interval = 0;
+				else if (interval < 0) interval = getNextExact(interval);
+				
+				process.setNext(msecs++ + interval);
+			}
+			
+			queue.add(process);
+			plugin.persist.setNext(process);
 		}
+		
+		plugin.persist.setClean(type, name);
 	}
 	
 	@Override
