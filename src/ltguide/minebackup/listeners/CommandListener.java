@@ -1,6 +1,5 @@
 package ltguide.minebackup.listeners;
 
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Map;
 import java.util.TreeMap;
@@ -20,11 +19,14 @@ public class CommandListener implements CommandExecutor {
 	private final MineBackup plugin;
 	private long msecs;
 	
-	public CommandListener(final MineBackup plugin) {
-		this.plugin = plugin;
+	public CommandListener(final MineBackup instance) {
+		plugin = instance;
+		
+		plugin.getCommand("minebackup").setExecutor(this);
 	}
 	
-	@Override public boolean onCommand(final CommandSender sender, final org.bukkit.command.Command c, final String label, final String[] args) {
+	@Override
+	public boolean onCommand(final CommandSender sender, final org.bukkit.command.Command c, final String label, final String[] args) {
 		try {
 			if (plugin.isWorking()) throw new CommandException(Message.get("BUSY"));
 			
@@ -61,7 +63,7 @@ public class CommandListener implements CommandExecutor {
 					break;
 				case DROPBOX:
 					plugin.persist.setDropboxAuth(args[1], args[2]);
-					plugin.spawnDropbox();
+					plugin.spawnUpload();
 					Base.broadcast(sender, commands.handle);
 					break;
 			}
@@ -79,7 +81,7 @@ public class CommandListener implements CommandExecutor {
 		if (!plugin.config.isLoaded(type, name)) return;
 		
 		final StringBuilder sb = new StringBuilder();
-		for (final String action : Arrays.asList("save", "copy", "compress", "cleanup", "dropbox"))
+		for (final String action : plugin.actions)
 			if ((interval = plugin.config.getInterval(type, name, action)) != 0) sb.append(Message.getText("STATUS_ACTION", action, getNext(msecs, type, name, action), getTime(interval)));
 		
 		Base.send(sender, Message.getText("STATUS", "worlds".equals(type) ? "World" : "Other", name, plugin.persist.isDirty(type, name), sb.toString()));

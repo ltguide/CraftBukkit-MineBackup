@@ -3,11 +3,12 @@ package ltguide.minebackup.data;
 import java.util.Arrays;
 
 import ltguide.base.data.Command;
+import ltguide.base.data.IEnum;
 import ltguide.base.exceptions.CommandException;
 
 import org.bukkit.command.CommandSender;
 
-public enum Commands {
+public enum Commands implements IEnum {
 	STATUS("status", Messages.STATUS_NOTE, "", false),
 	NOW("manual", Messages.BACKUP_NOW, "", false),
 	SOON("manual", Messages.BACKUP_SOON, "", false),

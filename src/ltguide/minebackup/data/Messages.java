@@ -1,8 +1,9 @@
 package ltguide.minebackup.data;
 
+import ltguide.base.data.IEnum;
 import ltguide.base.data.Message;
 
-public enum Messages {
+public enum Messages implements IEnum {
 	PREFIX(false),
 	BUSY(true),
 	SYNTAX(false),

@@ -1,8 +1,9 @@
 package ltguide.minebackup;
 
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashSet;
 import java.util.concurrent.Future;
 
 import ltguide.base.Base;
@@ -12,58 +13,60 @@ import ltguide.minebackup.configuration.Persist;
 import ltguide.minebackup.listeners.CommandListener;
 import ltguide.minebackup.listeners.PlayerListener;
 import ltguide.minebackup.listeners.WorldListener;
+import ltguide.minebackup.threads.SyncCall;
+import ltguide.minebackup.threads.TaskProcess;
+import ltguide.minebackup.threads.TaskUpload;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.event.Event;
-import org.bukkit.event.Event.Priority;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class MineBackup extends JavaPlugin {
 	private int processId = -1;
-	private int dropboxId = -1;
+	private int uploadId = -1;
 	private final TaskProcess process = new TaskProcess(this);
-	private final TaskDropbox dropbox = new TaskDropbox(this);
-	private final Set<String> working = new HashSet<String>();
+	private final TaskUpload upload = new TaskUpload(this);
+	private final HashSet<String> working = new HashSet<String>();
 	public Config config;
 	public Persist persist;
+	public LinkedHashSet<String> actions = new LinkedHashSet<String>(Arrays.asList("save", "copy", "compress", "cleanup"));
 	
-	@Override public void onDisable() {
+	@Override
+	public void onDisable() {
+		Base.debug("Forcing world save back ON.");
+		
 		for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(true);
 		
 		if (persist != null) persist.saveConfig();
 	}
 	
-	@Override public void onEnable() {
+	@Override
+	public void onEnable() {
 		if (Debug.ON) Debug.init(this);
 		Base.init(this);
 		persist = new Persist(this);
 		config = new Config(this);
 		
-		for (final World world : Bukkit.getWorlds())
+		if (!config.hasAction("save")) Base.warning("You have NOT enabled any worlds to be automatically saved. This plugin needs to control world saving to prevent backup corruption.");
+		else for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(false);
 		
-		getCommand("minebackup").setExecutor(new CommandListener(this));
-		
-		final PlayerListener playerListener = new PlayerListener(this);
-		final PluginManager pm = getServer().getPluginManager();
-		pm.registerEvent(Event.Type.PLAYER_TELEPORT, playerListener, Priority.Monitor, this);
-		pm.registerEvent(Event.Type.PLAYER_QUIT, playerListener, Priority.Monitor, this);
-		pm.registerEvent(Event.Type.WORLD_SAVE, new WorldListener(this), Priority.Monitor, this);
+		new CommandListener(this);
+		new PlayerListener(this);
+		new WorldListener(this);
 		
 		Base.info("v" + getDescription().getVersion() + " enabled");
 		
 		spawnProcess(60);
-		spawnDropbox();
+		spawnUpload();
 	}
 	
 	public void reload() {
 		config.reload();
 		persist.reload();
 		process.reload();
-		spawnDropbox();
+		spawnUpload();
 	}
 	
 	public void fillProcessQueue() {
@@ -93,23 +96,24 @@ public class MineBackup extends JavaPlugin {
 		}
 	}
 	
-	public void spawnDropbox() {
-		if (isWorking(dropbox)) return;
-		if (Debug.ON) Debug.info("attempting to spawnDropbox()");
+	public void spawnUpload() {
+		if (isWorking(upload)) return;
 		
-		if (dropboxRunning()) getServer().getScheduler().cancelTask(dropboxId);
+		if (uploadId != -1) getServer().getScheduler().cancelTask(uploadId);
 		
-		if (!config.hasAction("dropbox") || !dropbox.hasDropboxAuth()) return;
-		if (Debug.ON) Debug.info("spawnDropbox()");
+		checkUpload("dropbox");
+		checkUpload("ftp");
+		if (actions.size() == 4) return;
 		
-		dropboxId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, dropbox, 30 * 20L, 300 * 20L);
+		if (Debug.ON) Debug.info("spawnUpload()");
+		uploadId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, upload, 30 * 20L, 300 * 20L);
 	}
 	
-	public Future<Boolean> callSync(final String action, final World world) {
-		return getServer().getScheduler().callSyncMethod(this, new CallSync(this, action, world));
+	public Future<Boolean> syncCall(final String action, final World world) {
+		return getServer().getScheduler().callSyncMethod(this, new SyncCall(this, action, world));
 	}
 	
-	protected synchronized void setWorking(final Thread thread, final boolean working) {
+	public synchronized void setWorking(final Thread thread, final boolean working) {
 		final String name = thread.getClass().getSimpleName();
 		
 		if (working) this.working.add(name);
@@ -126,7 +130,14 @@ public class MineBackup extends JavaPlugin {
 		return working.contains(thread.getClass().getSimpleName());
 	}
 	
-	public boolean dropboxRunning() {
-		return dropboxId != -1;
+	private void checkUpload(final String type) {
+		if (Debug.ON) Debug.info("checkUpload(\"" + type + "\")");
+		
+		if (config.hasAction(type) && upload.hasAuth(type)) actions.add(type);
+		else actions.remove(type);
+	}
+	
+	public boolean hasAction(final String action) {
+		return actions.contains(action);
 	}
 }

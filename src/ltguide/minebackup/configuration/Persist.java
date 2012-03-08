@@ -3,7 +3,9 @@ package ltguide.minebackup.configuration;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import ltguide.base.Base;
 import ltguide.base.Debug;
@@ -11,6 +13,7 @@ import ltguide.base.data.Configuration;
 import ltguide.base.utils.DirUtils;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Process;
+import ltguide.minebackup.data.Upload;
 
 import org.bukkit.World;
 
@@ -50,7 +53,7 @@ public class Persist extends Configuration {
 		if ("worlds".equals(type) && (world = plugin.getServer().getWorld(name)) == null) return false;
 		
 		try {
-			return getBoolean(type + "." + name + ".dirty") || ("Server thread".equals(Thread.currentThread().getName()) ? hasPlayers(world) : ((MineBackup) plugin).callSync("count", world).get());
+			return getBoolean(type + "." + name + ".dirty") || ("Server thread".equals(Thread.currentThread().getName()) ? hasPlayers(world) : ((MineBackup) plugin).syncCall("count", world).get());
 		}
 		catch (final Exception e) {
 			Base.logException(e, "");
@@ -104,45 +107,49 @@ public class Persist extends Configuration {
 		set(path, keep);
 	}
 	
-	public boolean addDropboxUpload(final Process process) {
+	public boolean addUpload(final String type, final Process process) {
 		final List<String> keep = getStringList(process.getType() + "." + process.getName() + ".keep");
 		if (keep == null || keep.size() == 0) return false;
 		
 		Collections.reverse(keep);
 		for (final String name : keep)
-			if (name.endsWith(".zip")) return addDropboxUpload(name);
-			else if (Debug.ON) Debug.info("bad file for dropbox: " + name);
+			if (name.endsWith(".zip")) return addUpload(type, name);
+			else if (Debug.ON) Debug.info("bad file for " + type + ": " + name);
 		
 		return false;
 	}
 	
-	private boolean addDropboxUpload(final String name) {
+	private boolean addUpload(final String type, final String name) {
 		final File file = new File(name);
 		if (!file.exists()) return false;
 		
-		if (file.length() > maxDropboxSize) {
-			Base.warning(name + ": file size exceeds maximum allowed by the API");
+		if ("dropbox".equals(type) && file.length() > maxDropboxSize) {
+			Base.warning(name + ": file size exceeds maximum allowed by the Dropbox API");
 			return false;
 		}
 		
-		List<String> upload = getStringList("dropbox.upload");
-		if (upload == null) upload = new ArrayList<String>();
+		List<Map<?, ?>> list = getMapList("upload");
+		if (list == null) list = new ArrayList<Map<?, ?>>();
 		
-		upload.add(name);
-		set("dropbox.upload", upload);
+		final HashMap<String, String> upload = new HashMap<String, String>();
+		upload.put("type", type);
+		upload.put("name", name);
+		
+		list.add(upload);
+		set("upload", list);
 		
 		return true;
 	}
 	
-	public String getDropboxUpload() {
-		final List<String> upload = getStringList("dropbox.upload");
-		if (upload == null || upload.size() == 0) return null;
+	public Upload getUpload() {
+		final List<Map<?, ?>> list = getMapList("upload");
+		if (list == null || list.size() == 0) return null;
 		
-		final String first = upload.get(0);
-		upload.remove(0);
-		set("dropbox.upload", upload);
+		final Map<?, ?> upload = list.get(0);
+		list.remove(0);
+		set("upload", list);
 		
-		return first;
+		return new Upload(upload.get("type").toString(), upload.get("name").toString());
 	}
 	
 	public String getDropboxAuth(final String key) {

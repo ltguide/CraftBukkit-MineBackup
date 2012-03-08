@@ -1,28 +1,30 @@
-package ltguide.minebackup;
+package ltguide.minebackup.threads;
 
 import java.util.concurrent.Callable;
 
 import ltguide.base.Base;
+import ltguide.minebackup.MineBackup;
 
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-public class CallSync implements Callable<Boolean> {
+public class SyncCall implements Callable<Boolean> {
 	private final MineBackup plugin;
 	private final String action;
 	private final World world;
 	private int x;
 	private int z;
 	
-	public CallSync(final MineBackup plugin, final String action, final World world) {
+	public SyncCall(final MineBackup plugin, final String action, final World world) {
 		this.plugin = plugin;
 		this.action = action;
 		this.world = world;
 	}
 	
-	@Override public Boolean call() {
+	@Override
+	public Boolean call() {
 		if ("save".equals(action)) {
 			for (final Player player : world.getPlayers())
 				if (player.isOnline()) player.saveData();

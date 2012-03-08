@@ -3,6 +3,7 @@ package ltguide.minebackup.configuration;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -10,14 +11,13 @@ import java.util.zip.Deflater;
 
 import ltguide.base.Base;
 import ltguide.base.Debug;
-import ltguide.base.data.Command;
 import ltguide.base.data.Configuration;
-import ltguide.base.data.Message;
+import ltguide.base.utils.HttpUtils;
+import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Commands;
 import ltguide.minebackup.data.Messages;
 import ltguide.minebackup.data.Process;
 
-import org.bukkit.Server;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,12 +25,12 @@ public class Config extends Configuration {
 	private final Set<String> loaded = new HashSet<String>();
 	
 	public Config(final JavaPlugin instance) {
-		super(instance, "config.yml");
+		super(instance);
 		
 		loadConfig();
 		
 		if (upgradeConfig()) {
-			options().copyDefaults(true);
+			migrateConfig();
 			saveConfig();
 		}
 		
@@ -43,31 +43,37 @@ public class Config extends Configuration {
 		loaded.clear();
 	}
 	
-	private boolean upgradeConfig() {
-		if (Debug.ON) Debug.info("checking config version");
-		if (isSet("version-nomodify")) {
-			if (Debug.ON) Debug.info("version isSet");
+	private void migrateConfig() {
+		Base.warning("migrating configuration");
+		
+		if (versionCompare(oldVersion, new int[] { 0, 5, 7 })) {
+			if (Debug.ON) Debug.info("here comes ftp!");
 			
-			final String newVersion = plugin.getDescription().getVersion();
-			final String oldVersion = getString("version-nomodify");
-			if (newVersion.equals(oldVersion)) return false;
+			set("start_covered_in_dirt", false);
 			
-			Base.warning("migrating config from " + oldVersion);
-			set("version-nomodify", newVersion);
-			
-			final int[] oldNum = getVersionInt(oldVersion);
-			if (oldNum.length != 3) {
-				Base.warning("\t\\ using default config (version tags altered)");
-				return true;
+			if (isSet("ftp.ftphost")) {
+				final HashMap<String, String> ftp = new HashMap<String, String>();
+				ftp.put("server", getString("ftphost") + ":" + getString("ftpport"));
+				ftp.put("path", getString("ftptargetdir"));
+				ftp.put("username", getString("ftpuser"));
+				ftp.put("password", getString("ftppassword"));
+				
+				set("ftp", createSection("ftp", ftp));
 			}
-			
-			if (versionCompare(oldNum, new int[] { 0, 5, 5 })) {
-				final List<String> types = getStringList("others.plugins.exclude-types");
-				types.add("lck");
-				set("others.plugins.exclude-types", types);
+			else {
+				set("default_actions.ftp", false);
+				set("default_settings.ftp", "3:30");
+				set("ftp", getDefaultSection().getConfigurationSection("ftp"));
 			}
 		}
-		else if (isSet("backup")) {
+		
+		if (versionCompare(oldVersion, new int[] { 0, 5, 5 })) {
+			final List<String> types = getStringList("others.plugins.exclude-types");
+			types.add("lck");
+			set("others.plugins.exclude-types", types);
+		}
+		
+		if (isSet("backup")) {
 			Base.warning("migrating config from v0.4.8.1+");
 			
 			final String oldLevel = getString("compression.level");
@@ -104,69 +110,18 @@ public class Config extends Configuration {
 			set("time", null);
 			set("options", null);
 		}
-		else if (Debug.ON) Debug.info("using default config");
-		
-		return true;
-	}
-	
-	private int[] getVersionInt(final String version) {
-		final String[] split = version.split("\\.");
-		final int[] num = new int[split.length];
-		
-		for (int i = 0; i < split.length; i++)
-			try {
-				num[i] = Integer.parseInt(split[i]);
-			}
-			catch (final NumberFormatException e) {
-				num[i] = 0;
-			}
-		
-		return num;
-	}
-	
-	private boolean versionCompare(final int[] old, final int[] current) {
-		for (int i = 0; i < current.length; i++)
-			if (old[i] > current[i]) return false;
-		
-		return true;
 	}
 	
 	private void checkConfig() {
-		options().copyDefaults(true);
-		Base.setDebug(getBoolean("debug"));
+		super.setDefaults(Messages.values(), Commands.values());
 		
 		final ConfigurationSection defaultSettings = getConfigurationSection("default_settings");
-		for (final String key : Arrays.asList("save", "copy", "compress", "cleanup", "dropbox"))
+		for (final String key : ((MineBackup) plugin).actions)
 			defaultSettings.set(key, getTime(defaultSettings, key));
 		
 		fixIntRange(defaultSettings, "compression_level", 0, 9);
 		fixIntRange(defaultSettings, "keep", 1, 168);
 		
-		for (final Messages messages : Messages.values())
-			Message.setConfig(messages.name(), getString("messages." + messages.name().toLowerCase()));
-		
-		for (final Commands command : Commands.values()) {
-			final String path = "commands." + command.name().toLowerCase();
-			
-			Command.setConfig(command.name(), getString(path + ".description"), getBroadcast(get(path + ".broadcast")));
-		}
-	}
-	
-	private String getBroadcast(final Object object) {
-		if (object == null) return null;
-		
-		if (object instanceof Boolean) {
-			if ((Boolean) object) return Server.BROADCAST_CHANNEL_USERS;
-			
-			return null;
-		}
-		
-		final String group = String.valueOf(object);
-		
-		if ("users".equalsIgnoreCase(group)) return Server.BROADCAST_CHANNEL_USERS;
-		if ("admins".equalsIgnoreCase(group)) return Server.BROADCAST_CHANNEL_ADMINISTRATIVE;
-		
-		return "minebackup." + group;
 	}
 	
 	private boolean isValidTime(final ConfigurationSection cs, final String key) {
@@ -179,7 +134,7 @@ public class Config extends Configuration {
 			else if (obj instanceof String) valid = ((String) obj).matches("0|[1-9]\\d*[smhd]|(?:[0-1]?\\d|2[0-4]):[0-5][0-9]");
 		}
 		
-		if (!valid) sendWarning(cs, key, obj);
+		if (!valid) Base.configWarning(cs, key, obj);
 		return valid;
 	}
 	
@@ -214,12 +169,8 @@ public class Config extends Configuration {
 		final int value = cs.getInt(key);
 		if (value < min || value > max) {
 			cs.set(key, getDefaultSection().getInt("default_settings." + key));
-			sendWarning(cs, key, value + "; valid: " + min + "-" + max);
+			Base.configWarning(cs, key, value + "; valid: " + min + "-" + max);
 		}
-	}
-	
-	private void sendWarning(final ConfigurationSection cs, final String key, final Object object) {
-		Base.warning(" $ invalid config setting: " + cs.getCurrentPath() + "." + key + " (" + object + ")");
 	}
 	
 	public boolean isLoaded(final String type, final String name) {
@@ -247,7 +198,7 @@ public class Config extends Configuration {
 		if ("others".equals(type)) folderSettings.set("save", 0);
 		//plugin.saveConfig(); //not for production (overwrites string-based times with integers)
 		
-		return true;
+		return getBoolean("start_covered_in_dirt");
 	}
 	
 	public long getInterval(final Process process) {
@@ -309,6 +260,21 @@ public class Config extends Configuration {
 		return false;
 	}
 	
+	public String getFTPAuth() {
+		try {
+			return String.format("ftp://%s:%s@%s/%s/", getFTPString("username"), getFTPString("password"), getFTPString("server").replace("%3A", ":"), getFTPString("path").replace("%2F", "/").replace("%5C", "/"));
+		}
+		catch (final Exception e) {
+			return null;
+		}
+	}
+	
+	private String getFTPString(final String key) throws Exception {
+		final String value = getString("ftp." + key);
+		if (value == null) throw new Exception();
+		return HttpUtils.encode(value);
+	}
+	
 	private class SourceFilenameFilter implements FilenameFilter {
 		private final List<String> folders;
 		private final List<String> types;
@@ -320,7 +286,8 @@ public class Config extends Configuration {
 			this.types = types;
 		}
 		
-		@Override public boolean accept(final File dir, String name) {
+		@Override
+		public boolean accept(final File dir, String name) {
 			final String path = dir.getName().toLowerCase();
 			name = name.toLowerCase();
 			

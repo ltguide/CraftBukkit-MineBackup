@@ -6,6 +6,7 @@ default_actions:
   compress: false
   cleanup: false
   dropbox: false
+  ftp: false
 default_settings:
   save: 15m
   copy: 1h
@@ -13,12 +14,12 @@ default_settings:
   compression_level: 9
   cleanup: '2:00'
   dropbox: '3:00'
+  ftp: '3:30'
   keep: 24
 worlds:
   yourworldname:
     save: true
     compress: true
-    dropbox: false
   yourworldname_nether:
     save: 30m
     compress: 3h
@@ -44,11 +45,17 @@ directories:
 destination:
   format: '%Y-%M-%D_%H-%m-%S'
   prepend-world: false
+ftp:
+  server: 'ftpserver:21'
+  path: '/'
+  username: 'user'
+  password: '123'
 messages:
   prefix: '&e[MineBackup]&f'
-  busy: 'An action is currently in progress. Try again in a few seconds.'
   syntax: '&6Syntax: &f%s &6--&e %s'
   permission: '&cYou do not have permission.'
+  reload: '&aReloaded configuration. (%s)'
+  busy: 'An action is currently in progress. Try again in a few seconds.'
   status: '&6%s: &f%s (&edirty: &f%s) %s'
   status_action: '&6%s: &f%s (&e%s&f)&6; '
   status_time_under: 'waiting %s'
@@ -59,7 +66,6 @@ messages:
   backup_soon: 'All backup actions added to the queue. (%s)'
   backup_next: 'The next backup action has been started early. (%s)'
   backup_done: 'All backup actions have completed.'
-  reload: '&aReloaded configuration. (%s)'
   dropbox: 'Dropbox authentication completed. (%s)'
 commands:
   status:
@@ -80,4 +86,5 @@ commands:
     description: 'Add Dropbox authentication tokens. Visit https://minebackup-dropbox.appspot.com/ for values.'
     broadcast: false
 debug: false
-version-nomodify: '0.5.5'
+start_covered_in_dirt: false
+version-nomodify: '0.5.8'

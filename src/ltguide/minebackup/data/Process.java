@@ -35,12 +35,14 @@ public class Process implements Comparable<Process> {
 		this.next = next;
 	}
 	
-	@Override public int compareTo(final Process process) {
+	@Override
+	public int compareTo(final Process process) {
 		return (int) (getNext() - process.getNext());
 	}
 	
 	public static Comparator<Process> comparator = new Comparator<Process>() {
-		@Override public int compare(final Process process1, final Process process2) {
+		@Override
+		public int compare(final Process process1, final Process process2) {
 			return process1.compareTo(process2);
 		}
 	};

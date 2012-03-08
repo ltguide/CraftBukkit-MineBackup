@@ -1,12 +1,11 @@
-package ltguide.minebackup;
+package ltguide.minebackup.threads;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.SortedSet;
@@ -17,6 +16,7 @@ import ltguide.base.Debug;
 import ltguide.base.data.Message;
 import ltguide.base.utils.DirUtils;
 import ltguide.base.utils.ZipUtils;
+import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Commands;
 import ltguide.minebackup.data.Process;
 
@@ -30,8 +30,8 @@ public class TaskProcess extends Thread {
 	private long msecs;
 	private long startTime;
 	
-	public TaskProcess(final MineBackup plugin) {
-		this.plugin = plugin;
+	public TaskProcess(final MineBackup instance) {
+		plugin = instance;
 	}
 	
 	public void reload() {
@@ -48,11 +48,12 @@ public class TaskProcess extends Thread {
 		startTime = Base.startTime();
 		if (Debug.ON) Debug.info("checkQueue(); fill=" + fill + "; msecs=" + msecs);
 		
-		List<String> actions = Arrays.asList("save", "copy", "compress", "cleanup", "dropbox");
+		HashSet<String> actions = plugin.actions;
 		if (fill) {
 			reload();
-			actions = new ArrayList<String>(actions);
+			actions = new LinkedHashSet<String>(actions);
 			actions.remove("dropbox");
+			actions.remove("ftp");
 		}
 		
 		for (final String name : plugin.config.getOthers())
@@ -62,17 +63,17 @@ public class TaskProcess extends Thread {
 			checkQueue(actions, fill, "worlds", world.getName());
 	}
 	
-	private void checkQueue(final List<String> actions, final boolean fill, final String type, final String name) {
+	private void checkQueue(final HashSet<String> actions, final boolean fill, final String type, final String name) {
 		long next = 0L;
 		long interval;
 		
-		final boolean load = plugin.config.load(type, name);
+		final boolean loaded = plugin.config.load(type, name);
 		
-		if (fill || load || plugin.persist.isDirty(type, name)) {
+		if (fill || loaded || plugin.persist.isDirty(type, name)) {
 			if (Debug.ON) Debug.info("checking " + name);
 			
 			for (final String action : actions)
-				if ((interval = plugin.config.getInterval(type, name, action)) != 0 && ((next = plugin.persist.getNext(type, name, action)) < msecs || load)) {
+				if ((interval = plugin.config.getInterval(type, name, action)) != 0 && ((next = plugin.persist.getNext(type, name, action)) < msecs || loaded)) {
 					if (Debug.ON) Debug.info(" | " + action + " time=" + next + " interval=" + interval);
 					final Process process = new Process(type, name, action, next);
 					
@@ -91,7 +92,8 @@ public class TaskProcess extends Thread {
 		}
 	}
 	
-	@Override public void run() {
+	@Override
+	public void run() {
 		if (Debug.ON) Debug.info("TaskProcess run()");
 		if (plugin.isWorking(this)) {
 			Base.info(" - TaskProcess already working - it's already been a minute?!");
@@ -128,10 +130,9 @@ public class TaskProcess extends Thread {
 				
 				plugin.persist.setNext(process);
 			}
-			
-			if (Debug.ON) Debug.info("> total " + Base.stopTime(startTime));
 		}
 		else if (Debug.ON) Debug.info("runOnce() - but nothing in queue");
+		if (Debug.ON) Debug.info("> total " + Base.stopTime(startTime));
 		
 		plugin.setWorking(this, false);
 	}
@@ -153,7 +154,7 @@ public class TaskProcess extends Thread {
 		return quick;
 	}
 	
-	protected TaskProcess setQuick(final boolean quick) {
+	public TaskProcess setQuick(final boolean quick) {
 		this.quick = quick;
 		return this;
 	}
@@ -170,7 +171,7 @@ public class TaskProcess extends Thread {
 			Base.startTime();
 			
 			try {
-				plugin.callSync("save", world).get();
+				plugin.syncCall("save", world).get();
 			}
 			catch (final Exception e) {
 				Base.logException(e, "");
@@ -179,8 +180,8 @@ public class TaskProcess extends Thread {
 			Base.debug("  \\ done " + Base.stopTime());
 		}
 		else if ("cleanup".equals(process.getAction())) plugin.persist.processKeep(process, null);
-		else if ("dropbox".equals(process.getAction())) {
-			if (plugin.dropboxRunning() && plugin.persist.addDropboxUpload(process)) logAction(" * queuing upload of latest %s\\%s", process);
+		else if ("dropbox".equals(process.getAction()) || "ftp".equals(process.getAction())) {
+			if (plugin.hasAction(process.getAction()) && plugin.persist.addUpload(process.getAction(), process)) logAction(" * queuing " + process.getAction() + " upload of latest %s\\%s", process);
 		}
 		else {
 			final String format = getFormat(process.getName(), world);

@@ -1,8 +1,9 @@
 name: MineBackup
 main: ltguide.minebackup.MineBackup
 author: ltguide
-version: 0.5.5
+version: 0.5.8
 description: Automatically backup your worlds
+softdepend: [Vault]
 commands:
   minebackup:
     description: Controls Minebackup
@@ -21,13 +22,9 @@ permissions:
        minebackup.dropbox: true
   minebackup.manual:
     description: Allows you to manually control backup process
-    default: false
   minebackup.status:
     description: Allows you to view backup status
-    default: false
   minebackup.reload:
     description: Allows you to reload configuration
-    default: false
   minebackup.dropbox:
     description: Allows you to update dropbox configuration
-    default: false
