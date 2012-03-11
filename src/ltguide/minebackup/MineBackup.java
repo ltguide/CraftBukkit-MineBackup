@@ -19,9 +19,8 @@ import ltguide.minebackup.threads.TaskUpload;
 
 import org.bukkit.Bukkit;
 import org.bukkit.World;
-import org.bukkit.plugin.java.JavaPlugin;
 
-public class MineBackup extends JavaPlugin {
+public class MineBackup extends Base {
 	private int processId = -1;
 	private int uploadId = -1;
 	private final TaskProcess process = new TaskProcess(this);
@@ -33,7 +32,7 @@ public class MineBackup extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
-		Base.debug("Forcing world save back ON.");
+		debug("Forcing world save back ON.");
 		
 		for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(true);
@@ -43,20 +42,18 @@ public class MineBackup extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
-		if (Debug.ON) Debug.init(this);
-		Base.init(this);
+		super.onEnable();
+		
 		persist = new Persist(this);
 		config = new Config(this);
 		
-		if (!config.hasAction("save")) Base.warning("You have NOT enabled any worlds to be automatically saved. This plugin needs to control world saving to prevent backup corruption.");
+		if (!config.hasAction("save")) warning("You have NOT enabled any worlds to be automatically saved. This plugin needs to control world saving to prevent backup corruption.");
 		else for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(false);
 		
 		new CommandListener(this);
 		new PlayerListener(this);
 		new WorldListener(this);
-		
-		Base.info("v" + getDescription().getVersion() + " enabled");
 		
 		spawnProcess(60);
 		spawnUpload();

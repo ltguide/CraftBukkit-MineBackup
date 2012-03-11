@@ -11,13 +11,10 @@ import java.util.Map.Entry;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
-import ltguide.base.Base;
 import ltguide.base.Debug;
-import ltguide.base.data.Message;
 import ltguide.base.utils.DirUtils;
 import ltguide.base.utils.ZipUtils;
 import ltguide.minebackup.MineBackup;
-import ltguide.minebackup.data.Commands;
 import ltguide.minebackup.data.Process;
 
 import org.bukkit.Bukkit;
@@ -45,7 +42,7 @@ public class TaskProcess extends Thread {
 	
 	public void checkQueue(final boolean fill) {
 		msecs = Calendar.getInstance().getTimeInMillis();
-		startTime = Base.startTime();
+		startTime = plugin.startTime();
 		if (Debug.ON) Debug.info("checkQueue(); fill=" + fill + "; msecs=" + msecs);
 		
 		HashSet<String> actions = plugin.actions;
@@ -98,7 +95,7 @@ public class TaskProcess extends Thread {
 	public void run() {
 		if (Debug.ON) Debug.info("TaskProcess run()");
 		if (plugin.isWorking(this)) {
-			Base.info(" - TaskProcess already working - it's already been a minute?!");
+			plugin.info(" - TaskProcess already working - it's already been a minute?!");
 			return;
 		}
 		
@@ -134,7 +131,7 @@ public class TaskProcess extends Thread {
 			}
 		}
 		else if (Debug.ON) Debug.info("runOnce() - but nothing in queue");
-		if (Debug.ON) Debug.info("> total " + Base.stopTime(startTime));
+		if (Debug.ON) Debug.info("> total " + plugin.stopTime(startTime));
 		
 		plugin.setWorking(this, false);
 	}
@@ -147,8 +144,8 @@ public class TaskProcess extends Thread {
 		
 		reload();
 		
-		Base.debug("> total " + Base.stopTime(startTime));
-		Base.broadcast(null, Commands.NOW.handle.getBroadcast(), Message.getText("BACKUP_DONE"));
+		plugin.debug("> total " + plugin.stopTime(startTime));
+		plugin.broadcast(null, plugin.getCmd("NOW").getBroadcast(), plugin.getMessage("BACKUP_DONE", ""));
 		plugin.setWorking(this, false);
 	}
 	
@@ -170,16 +167,16 @@ public class TaskProcess extends Thread {
 			if (world == null) return;
 			
 			logAction(" * saving %s\\%s", process);
-			Base.startTime();
+			plugin.startTime();
 			
 			try {
 				plugin.syncCall("save", world).get();
 			}
 			catch (final Exception e) {
-				Base.logException(e, "");
+				plugin.logException(e, "");
 			}
 			
-			Base.debug("  \\ done " + Base.stopTime());
+			plugin.debug("  \\ done " + plugin.stopTime());
 		}
 		else if ("cleanup".equals(process.getAction())) plugin.persist.processKeep(process, null);
 		else if ("dropbox".equals(process.getAction()) || "ftp".equals(process.getAction())) {
@@ -194,33 +191,33 @@ public class TaskProcess extends Thread {
 			final File sourceDir = plugin.config.getDir(process.getType(), process);
 			
 			if (!sourceDir.exists()) {
-				Base.warning(String.format("%% unable to %s %s (check path: %s)", process.getAction(), process.getName(), sourceDir.getPath()));
+				plugin.warning(String.format("%% unable to %s %s (check path: %s)", process.getAction(), process.getName(), sourceDir.getPath()));
 				return;
 			}
 			
 			logAction(" * %3$sing %s\\%s", process);
-			Base.startTime();
+			plugin.startTime();
 			
 			try {
 				if ("copy".equals(process.getAction())) DirUtils.copyDir(sourceDir, target = new File(backupDir, format), prepend, filter);
 				else ZipUtils.zipDir(sourceDir, target = new File(backupDir, format + ".zip"), prepend, plugin.config.getInt(process, "compression_level"), filter);
 				
-				Base.debug("  \\ done " + Base.stopTime());
+				plugin.debug("  \\ done " + plugin.stopTime());
 				
 				plugin.persist.processKeep(process, target);
 			}
 			catch (final Exception e) {
-				Base.info("  \\ failed");
-				Base.logException(e, process.getAction() + ": " + sourceDir + " -> " + target);
+				plugin.info("  \\ failed");
+				plugin.logException(e, process.getAction() + ": " + sourceDir + " -> " + target);
 				
 				DirUtils.delete(target);
-				if (target.exists()) Base.warning("unable to delete: " + target);
+				if (target.exists()) plugin.warning("unable to delete: " + target);
 			}
 		}
 	}
 	
 	private void logAction(final String format, final Process process) {
-		Base.info(String.format(format, process.getType(), process.getName(), process.getAction()));
+		plugin.info(String.format(format, process.getType(), process.getName(), process.getAction()));
 	}
 	
 	private String padZero(final int i) {

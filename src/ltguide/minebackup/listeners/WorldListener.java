@@ -2,7 +2,6 @@ package ltguide.minebackup.listeners;
 
 import java.util.Calendar;
 
-import ltguide.base.Base;
 import ltguide.minebackup.MineBackup;
 
 import org.bukkit.event.EventHandler;
@@ -26,7 +25,7 @@ public class WorldListener implements Listener {
 			final long current = Calendar.getInstance().getTimeInMillis();
 			if (current - msecs > 5000) {
 				msecs = current;
-				Base.warning("WorldSave detected. If a person triggered it then ignore this message. However, if another world save plugin is responsible, then you should uninstall it before it saves while a backup is in progress.");
+				plugin.warning("WorldSave detected. If a person triggered it then ignore this message. However, if another world save plugin is responsible, then you should uninstall it before it saves while a backup is in progress.");
 			}
 		}
 	}

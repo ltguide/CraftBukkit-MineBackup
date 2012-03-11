@@ -7,9 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import ltguide.base.Base;
 import ltguide.base.Debug;
-import ltguide.base.data.Configuration;
+import ltguide.base.configuration.Configuration;
 import ltguide.base.utils.DirUtils;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Process;
@@ -56,7 +55,7 @@ public class Persist extends Configuration {
 			return getBoolean(type + "." + name + ".dirty") || ("Server thread".equals(Thread.currentThread().getName()) ? hasPlayers(world) : ((MineBackup) plugin).syncCall("count", world).get());
 		}
 		catch (final Exception e) {
-			Base.logException(e, "");
+			plugin.logException(e, "");
 			return false;
 		}
 	}
@@ -86,8 +85,8 @@ public class Persist extends Configuration {
 		if (target != null) keep.add(target.getPath());
 		
 		if (keep.size() > num && (target == null || ((MineBackup) plugin).config.getInterval(process.getType(), process.getName(), "cleanup") == 0)) {
-			Base.debug(" * cleaning up " + process.getType() + "\\" + process.getName());
-			Base.startTime();
+			plugin.debug(" * cleaning up " + process.getType() + "\\" + process.getName());
+			plugin.startTime();
 			
 			while (keep.size() > num) {
 				final String backup = keep.get(0);
@@ -95,13 +94,13 @@ public class Persist extends Configuration {
 				
 				final File file = new File(backup);
 				if (file.exists()) {
-					Base.debug(" | removing " + backup);
+					plugin.debug(" | removing " + backup);
 					
 					DirUtils.delete(file);
 				}
 			}
 			
-			Base.debug("  \\ done " + Base.stopTime());
+			plugin.debug("  \\ done " + plugin.stopTime());
 		}
 		
 		set(path, keep);
@@ -124,7 +123,7 @@ public class Persist extends Configuration {
 		if (!file.exists()) return false;
 		
 		if ("dropbox".equals(type) && file.length() > maxDropboxSize) {
-			Base.warning(name + ": file size exceeds maximum allowed by the Dropbox API");
+			plugin.warning(name + ": file size exceeds maximum allowed by the Dropbox API");
 			return false;
 		}
 		

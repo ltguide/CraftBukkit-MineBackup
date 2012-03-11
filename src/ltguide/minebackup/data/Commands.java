@@ -1,14 +1,8 @@
 package ltguide.minebackup.data;
 
-import java.util.Arrays;
+import ltguide.base.data.ICommand;
 
-import ltguide.base.data.Command;
-import ltguide.base.data.IEnum;
-import ltguide.base.exceptions.CommandException;
-
-import org.bukkit.command.CommandSender;
-
-public enum Commands implements IEnum {
+public enum Commands implements ICommand {
 	STATUS("status", Messages.STATUS_NOTE, "", false),
 	NOW("manual", Messages.BACKUP_NOW, "", false),
 	SOON("manual", Messages.BACKUP_SOON, "", false),
@@ -16,27 +10,44 @@ public enum Commands implements IEnum {
 	RELOAD("reload", Messages.RELOAD, "", false),
 	DROPBOX("dropbox", Messages.DROPBOX, "<key> <secret>", false);
 	
-	public Command handle;
+	private String permission;
+	private Messages message;
+	private String syntax;
+	private boolean usesTarget;
 	
-	Commands(final String permission, final Messages messages, final String syntax, final boolean usesTarget) {
-		handle = new Command(name(), "minebackup." + permission, messages.handle, syntax, usesTarget);
-		Command.put(handle);
+	Commands(final String permission, final Messages message, final String syntax, final boolean usesTarget) {
+		this.permission = "minebackup." + permission;
+		this.message = message;
+		this.syntax = syntax;
+		this.usesTarget = usesTarget;
 	}
 	
-	public static Commands get(final CommandSender sender, final String label, final String[] args) throws CommandException {
+	public static Commands get(final String[] args) {
 		try {
-			final Commands commands = valueOf(args[0].toUpperCase());
-			commands.handle.init(sender, label, Arrays.asList(args));
-			return commands;
-		}
-		catch (final CommandException e) {
-			throw e;
+			return valueOf(args[0].toUpperCase());
 		}
 		catch (final Exception e) {
-			for (final Commands commands : Commands.values())
-				commands.handle.sendSyntax(sender, label);
-			
 			return null;
 		}
+	}
+	
+	@Override
+	public String permission() {
+		return permission;
+	}
+	
+	@Override
+	public Messages message() {
+		return message;
+	}
+	
+	@Override
+	public String syntax() {
+		return syntax;
+	}
+	
+	@Override
+	public boolean usesTarget() {
+		return usesTarget;
 	}
 }

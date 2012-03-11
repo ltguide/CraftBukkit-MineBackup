@@ -1,9 +1,8 @@
 package ltguide.minebackup.data;
 
-import ltguide.base.data.IEnum;
-import ltguide.base.data.Message;
+import ltguide.base.data.IMessage;
 
-public enum Messages implements IEnum {
+public enum Messages implements IMessage {
 	PREFIX(false),
 	BUSY(true),
 	SYNTAX(false),
@@ -23,10 +22,14 @@ public enum Messages implements IEnum {
 	TARGET_NONE(true),
 	TARGET_REQUIRED(true);
 	
-	public Message handle;
+	private boolean usesPrefix;
 	
 	Messages(final boolean usesPrefix) {
-		handle = new Message(name(), usesPrefix);
-		Message.put(handle);
+		this.usesPrefix = usesPrefix;
+	}
+	
+	@Override
+	public boolean usesPrefix() {
+		return usesPrefix;
 	}
 }

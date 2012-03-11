@@ -7,7 +7,6 @@ import java.util.Random;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-import ltguide.base.Base;
 import ltguide.base.Debug;
 import ltguide.base.exceptions.HttpException;
 import ltguide.base.utils.HttpUtils;
@@ -46,7 +45,7 @@ public class TaskUpload extends Thread {
 		if (Debug.ON) Debug.info("TaskUpload run()");
 		
 		if (plugin.isWorking()) {
-			Base.debug("not checking upload queue because an action is in progress");
+			plugin.debug("not checking upload queue because an action is in progress");
 			return;
 		}
 		
@@ -62,18 +61,18 @@ public class TaskUpload extends Thread {
 		if (!file.exists()) return;
 		
 		plugin.setWorking(this, true);
-		Base.info(" * " + upload.getType() + " uploading " + upload.getName());
-		Base.startTime();
+		plugin.info(" * " + upload.getType() + " uploading " + upload.getName());
+		plugin.startTime();
 		final String path = HttpUtils.encode(upload.getName().substring(plugin.config.getDir("destination").length() + 1)).replace("%2F", "/").replace("%5C", "/");
 		
 		try {
 			if ("dropbox".equals(upload.getType())) HttpUtils.put("https://api-content.dropbox.com/1/files_put/sandbox/" + path, getAuthString(path), file);
 			else HttpUtils.ftp(ftpString + path + ";type=i,mkd=survival", file);
 			
-			Base.debug("  \\ upload done " + Base.stopTime());
+			plugin.debug("  \\ upload done " + plugin.stopTime());
 		}
 		catch (final HttpException e) {
-			Base.logException(e, path);
+			plugin.logException(e, path);
 		}
 		
 		plugin.setWorking(this, false);

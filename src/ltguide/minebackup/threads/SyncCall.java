@@ -2,7 +2,6 @@ package ltguide.minebackup.threads;
 
 import java.util.concurrent.Callable;
 
-import ltguide.base.Base;
 import ltguide.minebackup.MineBackup;
 
 import org.bukkit.Chunk;
@@ -37,7 +36,7 @@ public class SyncCall implements Callable<Boolean> {
 			for (final Chunk chunk : world.getLoadedChunks())
 				if (!keepChunk(chunk) && world.unloadChunk(chunk.getX(), chunk.getZ(), true, true)) chunks++;
 			
-			Base.debug(" | unloaded " + chunks + " chunks @ " + Base.stopTime());
+			plugin.debug(" | unloaded " + chunks + " chunks @ " + plugin.stopTime());
 			
 			world.save();
 		}

@@ -11,7 +11,7 @@ import java.util.zip.Deflater;
 
 import ltguide.base.Base;
 import ltguide.base.Debug;
-import ltguide.base.data.Configuration;
+import ltguide.base.configuration.Configuration;
 import ltguide.base.utils.HttpUtils;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Commands;
@@ -19,12 +19,11 @@ import ltguide.minebackup.data.Messages;
 import ltguide.minebackup.data.Process;
 
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.plugin.java.JavaPlugin;
 
 public class Config extends Configuration {
 	private final Set<String> loaded = new HashSet<String>();
 	
-	public Config(final JavaPlugin instance) {
+	public Config(final Base instance) {
 		super(instance);
 		
 		loadConfig();
@@ -44,7 +43,7 @@ public class Config extends Configuration {
 	}
 	
 	private void migrateConfig() {
-		Base.warning("migrating configuration");
+		plugin.warning("migrating configuration");
 		
 		if (versionCompare(oldVersion, new int[] { 0, 5, 7 })) {
 			if (Debug.ON) Debug.info("here comes ftp!");
@@ -74,7 +73,7 @@ public class Config extends Configuration {
 		}
 		
 		if (isSet("backup")) {
-			Base.warning("migrating config from v0.4.8.1+");
+			plugin.warning("migrating config from v0.4.8.1+");
 			
 			final String oldLevel = getString("compression.level");
 			int level = Deflater.BEST_COMPRESSION;
@@ -134,7 +133,7 @@ public class Config extends Configuration {
 			else if (obj instanceof String) valid = ((String) obj).matches("0|[1-9]\\d*[smhd]|(?:[0-1]?\\d|2[0-4]):[0-5][0-9]");
 		}
 		
-		if (!valid) Base.configWarning(cs, key, obj);
+		if (!valid) plugin.configWarning(cs, key, obj);
 		return valid;
 	}
 	
@@ -169,7 +168,7 @@ public class Config extends Configuration {
 		final int value = cs.getInt(key);
 		if (value < min || value > max) {
 			cs.set(key, getDefaultSection().getInt("default_settings." + key));
-			Base.configWarning(cs, key, value + "; valid: " + min + "-" + max);
+			plugin.configWarning(cs, key, value + "; valid: " + min + "-" + max);
 		}
 	}
 	
@@ -181,7 +180,7 @@ public class Config extends Configuration {
 		if (isLoaded(type, name)) return false;
 		loaded.add(type + "-" + name);
 		
-		Base.debug("loading config for " + type + "\\" + name);
+		plugin.debug("loading config for " + type + "\\" + name);
 		
 		ConfigurationSection folderSettings = getConfigurationSection(type + "." + name);
 		if (folderSettings == null) folderSettings = createSection(type + "." + name);
