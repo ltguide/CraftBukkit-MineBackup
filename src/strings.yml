@@ -30,7 +30,7 @@ commands:
     description: 'Expire all action times and trigger them NOW. (excludes uploads)'
     broadcast: users
   soon:
-    description: 'Expire all action times so that they will trigger on the following queue checks.'
+    description: 'Expire all action times so that they will trigger on the following queue checks. (excludes uploads)'
     broadcast: admins
   next:
     description: 'Trigger the next action in the queue. If no time is expired then nothing will happen.'
