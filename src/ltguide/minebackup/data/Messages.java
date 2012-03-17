@@ -3,7 +3,6 @@ package ltguide.minebackup.data;
 import ltguide.base.data.IMessage;
 
 public enum Messages implements IMessage {
-	PREFIX(false),
 	BUSY(true),
 	SYNTAX(false),
 	PERMISSION(false),
@@ -17,7 +16,13 @@ public enum Messages implements IMessage {
 	BACKUP_NOW(true),
 	BACKUP_SOON(true),
 	BACKUP_NEXT(true),
+	BACKUP_UPLOAD(true),
 	BACKUP_DONE(true),
+	ACTION_STARTING(true),
+	ACTION_DONE(true),
+	ACTION_SAVE(false),
+	ACTION_COPY(false),
+	ACTION_COMPRESS(false),
 	DROPBOX(true),
 	TARGET_NONE(true),
 	TARGET_REQUIRED(true);

@@ -10,6 +10,7 @@ import ltguide.base.Base;
 import ltguide.base.Debug;
 import ltguide.minebackup.configuration.Config;
 import ltguide.minebackup.configuration.Persist;
+import ltguide.minebackup.configuration.Strings;
 import ltguide.minebackup.listeners.CommandListener;
 import ltguide.minebackup.listeners.PlayerListener;
 import ltguide.minebackup.listeners.WorldListener;
@@ -27,6 +28,7 @@ public class MineBackup extends Base {
 	private final TaskUpload upload = new TaskUpload(this);
 	private final HashSet<String> working = new HashSet<String>();
 	public Config config;
+	public Strings strings;
 	public Persist persist;
 	public LinkedHashSet<String> actions = new LinkedHashSet<String>(Arrays.asList("save", "copy", "compress", "cleanup"));
 	
@@ -37,15 +39,16 @@ public class MineBackup extends Base {
 		for (final World world : Bukkit.getWorlds())
 			world.setAutoSave(true);
 		
-		if (persist != null) persist.saveConfig();
+		if (persist != null) persist.save();
 	}
 	
 	@Override
 	public void onEnable() {
 		super.onEnable();
 		
-		persist = new Persist(this);
 		config = new Config(this);
+		strings = new Strings(this);
+		persist = new Persist(this);
 		
 		if (!config.hasAction("save")) warning("You have NOT enabled any worlds to be automatically saved. This plugin needs to control world saving to prevent backup corruption.");
 		else for (final World world : Bukkit.getWorlds())
@@ -61,6 +64,7 @@ public class MineBackup extends Base {
 	
 	public void reload() {
 		config.reload();
+		strings.reload();
 		persist.reload();
 		process.reload();
 		spawnUpload();
@@ -68,6 +72,10 @@ public class MineBackup extends Base {
 	
 	public void fillProcessQueue() {
 		process.checkQueue(true);
+	}
+	
+	public void fillUploadQueue() {
+		process.fillUploadQueue();
 	}
 	
 	public int spawnProcess() {
@@ -116,7 +124,7 @@ public class MineBackup extends Base {
 		if (working) this.working.add(name);
 		else this.working.remove(name);
 		
-		if (working == false && "TaskProcess".equals(name)) persist.saveConfig();
+		if (working == false && "TaskProcess".equals(name)) persist.save();
 	}
 	
 	public synchronized boolean isWorking() {

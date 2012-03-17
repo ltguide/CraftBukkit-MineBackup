@@ -1,8 +1,6 @@
 package ltguide.minebackup.listeners;
 
 import java.util.Calendar;
-import java.util.Map;
-import java.util.TreeMap;
 
 import ltguide.base.exceptions.CommandException;
 import ltguide.minebackup.MineBackup;
@@ -57,6 +55,10 @@ public class CommandListener implements CommandExecutor {
 					plugin.broadcast(sender);
 					plugin.spawnProcess();
 					break;
+				case UPLOAD:
+					plugin.fillUploadQueue();
+					plugin.broadcast(sender);
+					break;
 				case RELOAD:
 					plugin.reload();
 					plugin.broadcast(sender);
@@ -82,7 +84,7 @@ public class CommandListener implements CommandExecutor {
 		
 		final StringBuilder sb = new StringBuilder();
 		for (final String action : plugin.actions)
-			if ((interval = plugin.config.getInterval(type, name, action)) != 0) sb.append(plugin.getMessage("STATUS_ACTION", action, getNext(msecs, type, name, action), getTime(interval)));
+			if ((interval = plugin.config.getInterval(type, name, action)) != 0) sb.append(plugin.getMessage("STATUS_ACTION", action, getNext(msecs, type, name, action), plugin.convertMilli2Time(interval)));
 		
 		plugin.send(sender, plugin.getMessage("STATUS", "worlds".equals(type) ? "World" : "Other", name, plugin.persist.isDirty(type, name), sb.toString()));
 	}
@@ -92,42 +94,9 @@ public class CommandListener implements CommandExecutor {
 		if (time == 0L) return plugin.getMessage("STATUS_TIME_NONE", "");
 		
 		time -= msecs;
-		if (time > 0L) return plugin.getMessage("STATUS_TIME_UNDER", getTime(time));
+		if (time > 0L) return plugin.getMessage("STATUS_TIME_UNDER", plugin.convertMilli2Time(time));
 		
 		time *= -1;
-		return plugin.getMessage("STATUS_TIME_OVER", getTime(time));
-	}
-	
-	private String getTime(final long time) {
-		int secs = (int) (time / 1000);
-		final StringBuilder sb = new StringBuilder();
-		
-		if (secs < 0) {
-			secs *= -1;
-			sb.append(secs / 3600);
-			sb.append(":");
-			sb.append(secs % 3600 / 60);
-			return sb.toString();
-		}
-		
-		int c;
-		final Map<String, Integer> map = new TreeMap<String, Integer>();
-		map.put("d", 86400);
-		map.put("h", 3600);
-		map.put("m", 60);
-		map.put("s", 1);
-		
-		for (final Map.Entry<String, Integer> entry : map.entrySet())
-			if ((c = secs / entry.getValue()) > 0 || sb.length() > 0) {
-				secs %= entry.getValue();
-				sb.append(c);
-				sb.append(entry.getKey());
-				
-				if (secs == 0) break;
-			}
-		
-		if (sb.length() == 0) sb.append("0s");
-		
-		return sb.toString();
+		return plugin.getMessage("STATUS_TIME_OVER", plugin.convertMilli2Time(time));
 	}
 }

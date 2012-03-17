@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ltguide.base.Base;
 import ltguide.base.Debug;
 import ltguide.base.configuration.Configuration;
 import ltguide.base.utils.DirUtils;
@@ -19,14 +20,18 @@ import org.bukkit.World;
 public class Persist extends Configuration {
 	private static final long maxDropboxSize = 180 * 1024 * 1024;
 	
-	public Persist(final MineBackup instance) {
+	public Persist(final Base instance) {
 		super(instance, "persist.dat");
-		
-		loadConfig();
+		reload();
 	}
 	
-	public void reload() {
-		loadConfig();
+	@Override
+	protected void migrate() {
+		/*
+		if (versionCompare(0, 5, 9)) {
+			
+		}
+		*/
 	}
 	
 	public void setDirty(final World world) {
@@ -55,7 +60,7 @@ public class Persist extends Configuration {
 			return getBoolean(type + "." + name + ".dirty") || ("Server thread".equals(Thread.currentThread().getName()) ? hasPlayers(world) : ((MineBackup) plugin).syncCall("count", world).get());
 		}
 		catch (final Exception e) {
-			plugin.logException(e, "");
+			plugin.debug("isDirty()->syncCall('count'): " + e.toString());
 			return false;
 		}
 	}
@@ -158,6 +163,6 @@ public class Persist extends Configuration {
 	public void setDropboxAuth(final String key, final String secret) {
 		set("dropbox.auth.key", key);
 		set("dropbox.auth.secret", secret);
-		saveConfig();
+		save();
 	}
 }

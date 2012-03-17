@@ -14,38 +14,40 @@ import ltguide.base.Debug;
 import ltguide.base.configuration.Configuration;
 import ltguide.base.utils.HttpUtils;
 import ltguide.minebackup.MineBackup;
-import ltguide.minebackup.data.Commands;
-import ltguide.minebackup.data.Messages;
 import ltguide.minebackup.data.Process;
 
 import org.bukkit.configuration.ConfigurationSection;
 
 public class Config extends Configuration {
-	private final Set<String> loaded = new HashSet<String>();
+	public final Set<String> loaded = new HashSet<String>();
 	
 	public Config(final Base instance) {
 		super(instance);
-		
-		loadConfig();
-		
-		if (upgradeConfig()) {
-			migrateConfig();
-			saveConfig();
-		}
-		
-		checkConfig();
+		reload();
 	}
 	
+	@Override
 	public void reload() {
-		loadConfig();
-		checkConfig();
+		super.reload();
+		
+		plugin.setDebug(getBoolean("debug"));
+		
+		check();
 		loaded.clear();
 	}
 	
-	private void migrateConfig() {
-		plugin.warning("migrating configuration");
+	@Override
+	protected void migrate() {
+		if (Debug.ON) Debug.info("Config migrate()");
 		
-		if (versionCompare(oldVersion, new int[] { 0, 5, 7 })) {
+		if (versionCompare(0, 5, 8)) {
+			if (Debug.ON) Debug.info("here comes action broadcasts!");
+			set("default_settings.broadcast", false);
+			set("commands", null);
+			set("messages", null);
+		}
+		
+		if (versionCompare(0, 5, 7)) {
 			if (Debug.ON) Debug.info("here comes ftp!");
 			
 			set("start_covered_in_dirt", false);
@@ -66,7 +68,7 @@ public class Config extends Configuration {
 			}
 		}
 		
-		if (versionCompare(oldVersion, new int[] { 0, 5, 5 })) {
+		if (versionCompare(0, 5, 5)) {
 			final List<String> types = getStringList("others.plugins.exclude-types");
 			types.add("lck");
 			set("others.plugins.exclude-types", types);
@@ -111,16 +113,18 @@ public class Config extends Configuration {
 		}
 	}
 	
-	private void checkConfig() {
-		super.setDefaults(Messages.values(), Commands.values());
+	private void check() {
+		final ConfigurationSection actions = getConfigurationSection("default_actions");
+		final ConfigurationSection defaults = getConfigurationSection("default_settings");
+		for (final String key : ((MineBackup) plugin).actions) {
+			fixBoolean(actions, key);
+			defaults.set(key, getTime(defaults, key));
+		}
 		
-		final ConfigurationSection defaultSettings = getConfigurationSection("default_settings");
-		for (final String key : ((MineBackup) plugin).actions)
-			defaultSettings.set(key, getTime(defaultSettings, key));
+		fixIntRange(defaults, "compression_level", 0, 9);
+		fixIntRange(defaults, "keep", 1, 168);
 		
-		fixIntRange(defaultSettings, "compression_level", 0, 9);
-		fixIntRange(defaultSettings, "keep", 1, 168);
-		
+		fixBoolean(defaults, "broadcast");
 	}
 	
 	private boolean isValidTime(final ConfigurationSection cs, final String key) {
@@ -164,14 +168,6 @@ public class Config extends Configuration {
 		return (Integer) obj;
 	}
 	
-	private void fixIntRange(final ConfigurationSection cs, final String key, final int min, final int max) {
-		final int value = cs.getInt(key);
-		if (value < min || value > max) {
-			cs.set(key, getDefaultSection().getInt("default_settings." + key));
-			plugin.configWarning(cs, key, value + "; valid: " + min + "-" + max);
-		}
-	}
-	
 	public boolean isLoaded(final String type, final String name) {
 		return loaded.contains(type + "-" + name);
 	}
@@ -182,19 +178,28 @@ public class Config extends Configuration {
 		
 		plugin.debug("loading config for " + type + "\\" + name);
 		
-		ConfigurationSection folderSettings = getConfigurationSection(type + "." + name);
-		if (folderSettings == null) folderSettings = createSection(type + "." + name);
+		ConfigurationSection settings = getConfigurationSection(type + "." + name);
+		if (settings == null) settings = createSection(type + "." + name);
 		
-		final ConfigurationSection defaultSettings = getConfigurationSection("default_settings");
+		final ConfigurationSection defaults = getConfigurationSection("default_settings");
 		
-		for (final String key : defaultSettings.getKeys(false))
-			if (folderSettings.contains(key)) {
-				if (folderSettings.isBoolean(key)) folderSettings.set(key, folderSettings.getBoolean(key) ? defaultSettings.get(key) : 0);
-				else folderSettings.set(key, getTime(folderSettings, key));
+		for (final String key : defaults.getKeys(false)) {
+			final boolean isAction = contains("default_actions." + key);
+			
+			if (settings.contains(key)) {
+				if (isAction) {
+					if (settings.isBoolean(key)) settings.set(key, settings.getBoolean(key) ? defaults.get(key) : 0);
+					else settings.set(key, getTime(settings, key));
+				}
+				else if (defaults.isBoolean(key)) settings.set(key, settings.getBoolean(key, false));
+				else settings.set(key, settings.getInt(key, 0));
 			}
-			else folderSettings.set(key, !contains("default_actions." + key) || getBoolean("default_actions." + key) ? defaultSettings.get(key) : 0);
+			else if (isAction) settings.set(key, getBoolean("default_actions." + key) ? defaults.get(key) : 0);
+			else if (defaults.isBoolean(key)) settings.set(key, defaults.getBoolean(key));
+			else settings.set(key, defaults.getInt(key));
+		}
 		
-		if ("others".equals(type)) folderSettings.set("save", 0);
+		if ("others".equals(type)) settings.set("save", 0);
 		//plugin.saveConfig(); //not for production (overwrites string-based times with integers)
 		
 		return getBoolean("start_covered_in_dirt");
@@ -235,6 +240,10 @@ public class Config extends Configuration {
 	
 	public boolean getDestPrepend() {
 		return getBoolean("destination.prepend-world");
+	}
+	
+	public boolean getBoolean(final Process process, final String key) {
+		return getBoolean(process.getType() + "." + process.getName() + "." + key, false);
 	}
 	
 	public int getInt(final Process process, final String key) {

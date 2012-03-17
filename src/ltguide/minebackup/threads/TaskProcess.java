@@ -2,6 +2,7 @@ package ltguide.minebackup.threads;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -45,7 +46,7 @@ public class TaskProcess extends Thread {
 		startTime = plugin.startTime();
 		if (Debug.ON) Debug.info("checkQueue(); fill=" + fill + "; msecs=" + msecs);
 		
-		HashSet<String> actions = plugin.actions;
+		LinkedHashSet<String> actions = plugin.actions;
 		if (fill) {
 			reload();
 			actions = new LinkedHashSet<String>(actions);
@@ -58,9 +59,11 @@ public class TaskProcess extends Thread {
 		
 		for (final World world : Bukkit.getWorlds())
 			checkQueue(actions, fill, "worlds", world.getName());
+		
+		if (queue.size() > 150) plugin.warning("The action queue has " + queue.size() + " items. You need to increase the interval between actions.");
 	}
 	
-	private void checkQueue(final HashSet<String> actions, final boolean fill, final String type, final String name) {
+	private void checkQueue(final LinkedHashSet<String> actions, final boolean fill, final String type, final String name) {
 		if (Debug.ON) Debug.info("checking " + name);
 		
 		long next = 0L;
@@ -70,10 +73,12 @@ public class TaskProcess extends Thread {
 		
 		for (final String action : actions) {
 			if ((interval = plugin.config.getInterval(type, name, action)) == 0) continue;
-			if ((next = plugin.persist.getNext(type, name, action)) > msecs && !loaded) continue;
-			if (!dirty && next == 0L) continue;
 			
-			if (Debug.ON) Debug.info(" | " + action + " time=" + next + " interval=" + interval);
+			next = plugin.persist.getNext(type, name, action);
+			if (Debug.ON) Debug.info(" | " + action + " next=" + next + " interval=" + interval + " dirty=" + dirty + " loaded=" + loaded + " >msecs=" + (next > msecs));
+			
+			if (loaded) next = 0L;
+			else if (next > msecs || !dirty && next == 0L) continue;
 			
 			final Process process = new Process(type, name, action, next);
 			
@@ -89,6 +94,21 @@ public class TaskProcess extends Thread {
 		}
 		
 		plugin.persist.setClean(type, name);
+	}
+	
+	public void fillUploadQueue() {
+		final HashSet<String> actions = new HashSet<String>(Arrays.asList("dropbox", "ftp"));
+		
+		for (final String name : plugin.config.getOthers())
+			fillUploadQueue(actions, "others", name);
+		
+		for (final World world : Bukkit.getWorlds())
+			fillUploadQueue(actions, "worlds", world.getName());
+	}
+	
+	private void fillUploadQueue(final HashSet<String> actions, final String type, final String name) {
+		for (final String action : actions)
+			if (plugin.config.getInterval(type, name, action) != 0) process(new Process(type, name, action, 0L));
 	}
 	
 	@Override
@@ -161,11 +181,13 @@ public class TaskProcess extends Thread {
 	private void process(final Process process) {
 		if (Debug.ON) Debug.info("process queue: " + process.getName() + " " + process.getAction() + " @ " + process.getNext());
 		
+		boolean isBroadcast = false;
 		final World world = plugin.getServer().getWorld(process.getName());
 		
 		if ("save".equals(process.getAction())) {
 			if (world == null) return;
 			
+			isBroadcast = broadcast(process);
 			logAction(" * saving %s\\%s", process);
 			plugin.startTime();
 			
@@ -173,7 +195,7 @@ public class TaskProcess extends Thread {
 				plugin.syncCall("save", world).get();
 			}
 			catch (final Exception e) {
-				plugin.logException(e, "");
+				plugin.debug("process()->syncCall('save'): " + e.toString());
 			}
 			
 			plugin.debug("  \\ done " + plugin.stopTime());
@@ -182,7 +204,7 @@ public class TaskProcess extends Thread {
 		else if ("dropbox".equals(process.getAction()) || "ftp".equals(process.getAction())) {
 			if (plugin.hasAction(process.getAction()) && plugin.persist.addUpload(process.getAction(), process)) logAction(" * queuing " + process.getAction() + " upload of latest %s\\%s", process);
 		}
-		else {
+		else if ("compress".equals(process.getAction()) || "copy".equals(process.getAction())) {
 			final String format = getFormat(process.getName(), world);
 			final String prepend = plugin.config.getDestPrepend() ? process.getName() : null;
 			final FilenameFilter filter = plugin.config.getFilenameFilter(process);
@@ -195,6 +217,7 @@ public class TaskProcess extends Thread {
 				return;
 			}
 			
+			isBroadcast = broadcast(process);
 			logAction(" * %3$sing %s\\%s", process);
 			plugin.startTime();
 			
@@ -214,6 +237,25 @@ public class TaskProcess extends Thread {
 				if (target.exists()) plugin.warning("unable to delete: " + target);
 			}
 		}
+		
+		if (isBroadcast) plugin.getServer().broadcastMessage(plugin.getMessage("ACTION_DONE"));
+	}
+	
+	private boolean broadcast(final Process process) {
+		if (plugin.config.getBoolean(process, "broadcast")) {
+			plugin.getServer().broadcastMessage(plugin.getMessage("ACTION_STARTING", plugin.getMessage("ACTION_" + process.getAction().toUpperCase()), process.getType() + "\\" + process.getName()));
+			
+			try {
+				sleep(5000);
+			}
+			catch (final Exception e) {
+				plugin.debug("broadcast(process)->sleep(): " + e.toString());
+			}
+			
+			return plugin.strings.getString("action_done") != null;
+		}
+		
+		return false;
 	}
 	
 	private void logAction(final String format, final Process process) {
