@@ -41,13 +41,13 @@ public class TaskProcess extends Thread {
 		queue.clear();
 	}
 	
-	public void checkQueue(final boolean fill) {
+	public void checkQueue(final int delay) {
 		msecs = Calendar.getInstance().getTimeInMillis();
 		startTime = plugin.startTime();
-		if (Debug.ON) Debug.info("checkQueue(); fill=" + fill + "; msecs=" + msecs);
+		if (Debug.ON) Debug.info("checkQueue(); delay=" + delay + "; msecs=" + msecs);
 		
 		LinkedHashSet<String> actions = plugin.actions;
-		if (fill) {
+		if (delay > 0) {
 			reload();
 			actions = new LinkedHashSet<String>(actions);
 			actions.remove("dropbox");
@@ -55,21 +55,21 @@ public class TaskProcess extends Thread {
 		}
 		
 		for (final String name : plugin.config.getOthers())
-			checkQueue(actions, fill, "others", name);
+			checkQueue(actions, delay, "others", name);
 		
 		for (final World world : Bukkit.getWorlds())
-			checkQueue(actions, fill, "worlds", world.getName());
+			checkQueue(actions, delay, "worlds", world.getName());
 		
 		if (queue.size() > 150) plugin.warning("The action queue has " + queue.size() + " items. You need to increase the interval between actions.");
 	}
 	
-	private void checkQueue(final LinkedHashSet<String> actions, final boolean fill, final String type, final String name) {
+	private void checkQueue(final LinkedHashSet<String> actions, final int delay, final String type, final String name) {
 		if (Debug.ON) Debug.info("checking " + name);
 		
 		long next = 0L;
 		long interval;
 		final boolean loaded = plugin.config.load(type, name);
-		final boolean dirty = plugin.persist.isDirty(type, name) || fill;
+		final boolean dirty = plugin.persist.isDirty(type, name) || delay > 0;
 		
 		for (final String action : actions) {
 			if ((interval = plugin.config.getInterval(type, name, action)) == 0) continue;
@@ -83,7 +83,7 @@ public class TaskProcess extends Thread {
 			final Process process = new Process(type, name, action, next);
 			
 			if (next == 0L) {
-				if (fill) interval = 0;
+				if (delay > 0) interval = delay;
 				else if (interval < 0) interval = getNextExact(interval);
 				
 				process.setNext(msecs++ + interval);
@@ -129,7 +129,7 @@ public class TaskProcess extends Thread {
 	}
 	
 	private void runOnce() {
-		checkQueue(false);
+		checkQueue(0);
 		
 		if (queue.size() > 0) {
 			final Process process = queue.first();
@@ -157,7 +157,7 @@ public class TaskProcess extends Thread {
 	}
 	
 	private void runQuick() {
-		checkQueue(true);
+		checkQueue(1);
 		
 		for (final Process action : queue)
 			process(action);

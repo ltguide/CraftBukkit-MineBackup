@@ -58,6 +58,8 @@ public class MineBackup extends Base {
 		new PlayerListener(this);
 		new WorldListener(this);
 		
+		checkStartupDelay();
+		
 		spawnProcess(60);
 		spawnUpload();
 	}
@@ -70,12 +72,17 @@ public class MineBackup extends Base {
 		spawnUpload();
 	}
 	
-	public void fillProcessQueue() {
-		process.checkQueue(true);
+	public void fillProcessQueue(final int delay) {
+		process.checkQueue(delay);
 	}
 	
 	public void fillUploadQueue() {
 		process.fillUploadQueue();
+	}
+	
+	private void checkStartupDelay() {
+		final int delay = config.getStartupDelay();
+		if (delay > 0) fillProcessQueue(delay * 1000);
 	}
 	
 	public int spawnProcess() {

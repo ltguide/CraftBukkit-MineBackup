@@ -40,6 +40,17 @@ public class Config extends Configuration {
 	protected void migrate() {
 		if (Debug.ON) Debug.info("Config migrate()");
 		
+		if (versionCompare(5, 9)) {
+			if (Debug.ON) Debug.info("here comes better dirt!");
+			
+			final HashMap<String, Object> onStartup = new HashMap<String, Object>();
+			onStartup.put("enabled", getBoolean("start_covered_in_dirt"));
+			onStartup.put("delay", "2m");
+			
+			set("actions_on_startup", createSection("actions_on_startup", onStartup));
+			set("start_covered_in_dirt", null);
+		}
+		
 		if (versionCompare(0, 5, 8)) {
 			if (Debug.ON) Debug.info("here comes action broadcasts!");
 			set("default_settings.broadcast", false);
@@ -50,7 +61,7 @@ public class Config extends Configuration {
 		if (versionCompare(0, 5, 7)) {
 			if (Debug.ON) Debug.info("here comes ftp!");
 			
-			set("start_covered_in_dirt", false);
+			//set("start_covered_in_dirt", false);
 			
 			if (isSet("ftp.ftphost")) {
 				final HashMap<String, String> ftp = new HashMap<String, String>();
@@ -103,10 +114,10 @@ public class Config extends Configuration {
 			set("debug", getBoolean("options.debug", false));
 			
 			set("compression", null);
-			set("messages.backup-ended", null);
-			set("messages.backup-started", null);
-			set("messages.backup-started-user", null);
-			set("messages.enabled", null);
+			//set("messages.backup-ended", null);
+			//set("messages.backup-started", null);
+			//set("messages.backup-started-user", null);
+			//set("messages.enabled", null);
 			set("backup", null);
 			set("time", null);
 			set("options", null);
@@ -202,7 +213,7 @@ public class Config extends Configuration {
 		if ("others".equals(type)) settings.set("save", 0);
 		//plugin.saveConfig(); //not for production (overwrites string-based times with integers)
 		
-		return getBoolean("start_covered_in_dirt");
+		return getBoolean("actions_on_startup.enabled");
 	}
 	
 	public long getInterval(final Process process) {
@@ -266,6 +277,13 @@ public class Config extends Configuration {
 		}
 		
 		return false;
+	}
+	
+	public int getStartupDelay() {
+		final ConfigurationSection cs = getConfigurationSection("actions_on_startup");
+		if (!cs.getBoolean("enabled")) return 0;
+		
+		return getTime(cs, "delay");
 	}
 	
 	public String getFTPAuth() {

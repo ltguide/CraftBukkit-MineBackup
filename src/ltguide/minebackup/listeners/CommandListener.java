@@ -48,7 +48,7 @@ public class CommandListener implements CommandExecutor {
 					plugin.spawnProcess(0);
 					break;
 				case SOON:
-					plugin.fillProcessQueue();
+					plugin.fillProcessQueue(1);
 					plugin.broadcast(sender);
 					break;
 				case NEXT:

@@ -44,4 +44,4 @@ commands:
   dropbox:
     description: 'Add Dropbox authentication tokens. Visit https://minebackup-dropbox.appspot.com/ for values.'
     broadcast: false
-version-nomodify: '5.9'
+version-nomodify: '5.9.1'
