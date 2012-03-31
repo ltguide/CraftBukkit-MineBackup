@@ -38,8 +38,6 @@ public class Config extends Configuration {
 	
 	@Override
 	protected void migrate() {
-		if (Debug.ON) Debug.info("Config migrate()");
-		
 		if (versionCompare(5, 9)) {
 			if (Debug.ON) Debug.info("here comes better dirt!");
 			
@@ -138,45 +136,25 @@ public class Config extends Configuration {
 		fixBoolean(defaults, "broadcast");
 	}
 	
-	private boolean isValidTime(final ConfigurationSection cs, final String key) {
+	private int getTime(final ConfigurationSection cs, final String key) {
 		if (Debug.ON) Debug.info("checking " + cs.getCurrentPath() + "." + key);
-		boolean valid = false;
-		final Object obj = cs.get(key);
+		
+		Object obj = cs.get(key);
 		if (obj != null) {
 			if (Debug.ON) Debug.info(" \\ " + obj + " (" + obj.getClass().getSimpleName() + ")");
+			
+			boolean valid = false;
 			if (obj instanceof Integer) valid = (Integer) obj > -1;
 			else if (obj instanceof String) valid = ((String) obj).matches("0|[1-9]\\d*[smhd]|(?:[0-1]?\\d|2[0-4]):[0-5][0-9]");
-		}
-		
-		if (!valid) plugin.configWarning(cs, key, obj);
-		return valid;
-	}
-	
-	private int getTime(final ConfigurationSection cs, final String key) {
-		if (!isValidTime(cs, key)) return 0;
-		
-		final Object obj = cs.get(key);
-		if (obj instanceof String) {
-			final String str = (String) obj;
-			if ("0".equals(str)) return 0;
+			else valid = obj instanceof Boolean;
 			
-			if (str.contains(":")) {
-				final String[] parts = str.split(":");
-				return 0 - Integer.parseInt(parts[0]) * 3600 - Integer.parseInt(parts[1]) * 60;
+			if (!valid) {
+				plugin.configWarning(cs, key, obj);
+				obj = null;
 			}
-			
-			int time = Integer.parseInt(str.substring(0, str.length() - 1));
-			if (time < 1) return 0;
-			
-			final String scale = str.substring(str.length() - 1);
-			if ("m".equals(scale)) time *= 60;
-			else if ("h".equals(scale)) time *= 3600;
-			else if ("d".equals(scale)) time *= 86400;
-			
-			return time;
 		}
 		
-		return (Integer) obj;
+		return getTime(obj);
 	}
 	
 	public boolean isLoaded(final String type, final String name) {
@@ -211,6 +189,10 @@ public class Config extends Configuration {
 		}
 		
 		if ("others".equals(type)) settings.set("save", 0);
+		
+		final File dir = getDir(type, name);
+		if (new File(dir, "level.dat_mcr").exists() || new File(dir + File.separator + "region", "r.0.0.mcr").exists()) plugin.warning(String.format("%% detected old map format files (%s); once backed up, remove level.dat_mcr and region%s*.mcr", dir.getPath(), File.separator));
+		
 		//plugin.saveConfig(); //not for production (overwrites string-based times with integers)
 		
 		return getBoolean("actions_on_startup.enabled");
@@ -242,7 +224,11 @@ public class Config extends Configuration {
 	}
 	
 	public File getDir(final String dir, final Process process) {
-		return new File(getString("directories." + dir), process.getName());
+		return getDir(dir, process.getName());
+	}
+	
+	public File getDir(final String dir, final String name) {
+		return new File(getString("directories." + dir), name);
 	}
 	
 	public String getDestFormat() {
@@ -270,10 +256,8 @@ public class Config extends Configuration {
 		
 		for (final String type : Arrays.asList("worlds", "others")) {
 			final ConfigurationSection section = getConfigurationSection(type);
-			for (final String key : section.getKeys(false)) {
-				final Object object = section.get(key + "." + action);
-				if (object != null && (!(object instanceof Boolean) || (Boolean) object == true)) return true;
-			}
+			for (final String key : section.getKeys(false))
+				if (getTime(section, key + "." + action) > 0) return true;
 		}
 		
 		return false;

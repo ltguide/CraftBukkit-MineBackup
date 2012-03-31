@@ -35,6 +35,10 @@ public class Process implements Comparable<Process> {
 		this.next = next;
 	}
 	
+	public Action valueOfAction() {
+		return Action.valueOf(action.toUpperCase());
+	}
+	
 	@Override
 	public int compareTo(final Process process) {
 		return (int) (getNext() - process.getNext());

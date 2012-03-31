@@ -61,7 +61,7 @@ public class MineBackup extends Base {
 		checkStartupDelay();
 		
 		spawnProcess(60);
-		spawnUpload();
+		spawnUpload(90);
 	}
 	
 	public void reload() {
@@ -69,15 +69,11 @@ public class MineBackup extends Base {
 		strings.reload();
 		persist.reload();
 		process.reload();
-		spawnUpload();
+		spawnUpload(90);
 	}
 	
 	public void fillProcessQueue(final int delay) {
 		process.checkQueue(delay);
-	}
-	
-	public void fillUploadQueue() {
-		process.fillUploadQueue();
 	}
 	
 	private void checkStartupDelay() {
@@ -108,7 +104,7 @@ public class MineBackup extends Base {
 		}
 	}
 	
-	public void spawnUpload() {
+	public void spawnUpload(int delay) {
 		if (isWorking(upload)) return;
 		
 		if (uploadId != -1) getServer().getScheduler().cancelTask(uploadId);
@@ -117,8 +113,18 @@ public class MineBackup extends Base {
 		checkUpload("ftp");
 		if (actions.size() == 4) return;
 		
-		if (Debug.ON) Debug.info("spawnUpload()");
-		uploadId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, upload, 30 * 20L, 300 * 20L);
+		if (delay == 0) {
+			if (Debug.ON) Debug.info("spawnProcess(); delay 0 (quick mode)");
+			process.fillUploadQueue();
+			
+			uploadId = getServer().getScheduler().scheduleAsyncDelayedTask(this, upload.setQuick(true), 5 * 20L);
+		}
+		else {
+			if (delay == 90) delay -= Calendar.getInstance().get(Calendar.SECOND);
+			if (Debug.ON) Debug.info("spawnUpload(); delaying " + delay);
+			
+			uploadId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, upload.setQuick(false), delay * 20L, 300 * 20L);
+		}
 	}
 	
 	public Future<Boolean> syncCall(final String action, final World world) {

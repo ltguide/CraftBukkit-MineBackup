@@ -28,7 +28,7 @@ public class Persist extends Configuration {
 	@Override
 	protected void migrate() {
 		/*
-		if (versionCompare(0, 5, 9)) {
+		if (versionCompare(5, 9, 1)) {
 			
 		}
 		*/
@@ -111,14 +111,14 @@ public class Persist extends Configuration {
 		set(path, keep);
 	}
 	
-	public boolean addUpload(final String type, final Process process) {
+	public boolean addUpload(final Process process) {
 		final List<String> keep = getStringList(process.getType() + "." + process.getName() + ".keep");
 		if (keep == null || keep.size() == 0) return false;
 		
 		Collections.reverse(keep);
 		for (final String name : keep)
-			if (name.endsWith(".zip")) return addUpload(type, name);
-			else if (Debug.ON) Debug.info("bad file for " + type + ": " + name);
+			if (name.endsWith(".zip")) return addUpload(process.getAction(), name);
+			else if (Debug.ON) Debug.info("bad file for " + process.getAction() + ": " + name);
 		
 		return false;
 	}

@@ -1,6 +1,5 @@
 package ltguide.minebackup.data;
 
-
 public class Upload {
 	private final String type;
 	private final String name;

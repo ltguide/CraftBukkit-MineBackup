@@ -113,7 +113,7 @@ public class TaskProcess extends Thread {
 	
 	@Override
 	public void run() {
-		if (Debug.ON) Debug.info("TaskProcess run()");
+		if (Debug.ON) Debug.info("TaskProcess run() " + isQuick());
 		if (plugin.isWorking(this)) {
 			plugin.info(" - TaskProcess already working - it's already been a minute?!");
 			return;
@@ -184,58 +184,68 @@ public class TaskProcess extends Thread {
 		boolean isBroadcast = false;
 		final World world = plugin.getServer().getWorld(process.getName());
 		
-		if ("save".equals(process.getAction())) {
-			if (world == null) return;
-			
-			isBroadcast = broadcast(process);
-			logAction(" * saving %s\\%s", process);
-			plugin.startTime();
-			
-			try {
-				plugin.syncCall("save", world).get();
-			}
-			catch (final Exception e) {
-				plugin.debug("process()->syncCall('save'): " + e.toString());
-			}
-			
-			plugin.debug("  \\ done " + plugin.stopTime());
-		}
-		else if ("cleanup".equals(process.getAction())) plugin.persist.processKeep(process, null);
-		else if ("dropbox".equals(process.getAction()) || "ftp".equals(process.getAction())) {
-			if (plugin.hasAction(process.getAction()) && plugin.persist.addUpload(process.getAction(), process)) logAction(" * queuing " + process.getAction() + " upload of latest %s\\%s", process);
-		}
-		else if ("compress".equals(process.getAction()) || "copy".equals(process.getAction())) {
-			final String format = getFormat(process.getName(), world);
-			final String prepend = plugin.config.getDestPrepend() ? process.getName() : null;
-			final FilenameFilter filter = plugin.config.getFilenameFilter(process);
-			File target = null;
-			final String backupDir = plugin.config.getDir("destination", process).getPath();
-			final File sourceDir = plugin.config.getDir(process.getType(), process);
-			
-			if (!sourceDir.exists()) {
-				plugin.warning(String.format("%% unable to %s %s (check path: %s)", process.getAction(), process.getName(), sourceDir.getPath()));
-				return;
-			}
-			
-			isBroadcast = broadcast(process);
-			logAction(" * %3$sing %s\\%s", process);
-			plugin.startTime();
-			
-			try {
-				if ("copy".equals(process.getAction())) DirUtils.copyDir(sourceDir, target = new File(backupDir, format), prepend, filter);
-				else ZipUtils.zipDir(sourceDir, target = new File(backupDir, format + ".zip"), prepend, plugin.config.getInt(process, "compression_level"), filter);
+		switch (process.valueOfAction()) {
+			case SAVE:
+				if (world == null) return;
+				
+				isBroadcast = broadcast(process);
+				logAction(" * saving %s\\%s", process);
+				plugin.startTime();
+				
+				try {
+					plugin.syncCall("save", world).get();
+				}
+				catch (final Exception e) {
+					plugin.debug("process()->syncCall('save'): " + e.toString());
+				}
 				
 				plugin.debug("  \\ done " + plugin.stopTime());
+				break;
+			
+			case CLEANUP:
+				plugin.persist.processKeep(process, null);
+				break;
+			
+			case DROPBOX:
+			case FTP:
+				if (plugin.hasAction(process.getAction()) && plugin.persist.addUpload(process)) logAction(" * queuing " + process.getAction() + " upload of latest %s\\%s", process);
+				break;
+			
+			case COMPRESS:
+			case COPY:
 				
-				plugin.persist.processKeep(process, target);
-			}
-			catch (final Exception e) {
-				plugin.info("  \\ failed");
-				plugin.logException(e, process.getAction() + ": " + sourceDir + " -> " + target);
+				final String format = getFormat(process.getName(), world);
+				final String prepend = plugin.config.getDestPrepend() ? process.getName() : null;
+				final FilenameFilter filter = plugin.config.getFilenameFilter(process);
+				File target = null;
+				final String backupDir = plugin.config.getDir("destination", process).getPath();
+				final File sourceDir = plugin.config.getDir(process.getType(), process);
 				
-				DirUtils.delete(target);
-				if (target.exists()) plugin.warning("unable to delete: " + target);
-			}
+				if (!sourceDir.exists()) {
+					plugin.warning(String.format("%% unable to %s %s (check path: %s)", process.getAction(), process.getName(), sourceDir.getPath()));
+					return;
+				}
+				
+				isBroadcast = broadcast(process);
+				logAction(" * %3$sing %s\\%s", process);
+				plugin.startTime();
+				
+				try {
+					if ("copy".equals(process.getAction())) DirUtils.copyDir(sourceDir, target = new File(backupDir, format), prepend, filter);
+					else ZipUtils.zipDir(sourceDir, target = new File(backupDir, format + ".zip"), prepend, plugin.config.getInt(process, "compression_level"), filter);
+					
+					plugin.debug("  \\ done " + plugin.stopTime());
+					
+					plugin.persist.processKeep(process, target);
+				}
+				catch (final Exception e) {
+					plugin.info("  \\ failed");
+					plugin.logException(e, process.getAction() + ": " + sourceDir + " -> " + target);
+					
+					DirUtils.delete(target);
+					if (target.exists()) plugin.warning("unable to delete: " + target);
+				}
+				break;
 		}
 		
 		if (isBroadcast) plugin.getServer().broadcastMessage(plugin.getMessage("ACTION_DONE"));

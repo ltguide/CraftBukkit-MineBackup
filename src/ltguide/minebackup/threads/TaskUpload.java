@@ -1,6 +1,7 @@
 package ltguide.minebackup.threads;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Random;
@@ -12,9 +13,12 @@ import ltguide.base.exceptions.HttpException;
 import ltguide.base.utils.HttpUtils;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Upload;
+import sun.net.ftp.FtpLoginException;
 
 public class TaskUpload extends Thread {
 	private final MineBackup plugin;
+	private boolean quick;
+	private long startTime;
 	private String userSecret;
 	SortedMap<String, String> oauth = new TreeMap<String, String>();
 	private String ftpString;
@@ -42,25 +46,59 @@ public class TaskUpload extends Thread {
 	
 	@Override
 	public void run() {
-		if (Debug.ON) Debug.info("TaskUpload run()");
-		
+		if (Debug.ON) Debug.info("TaskUpload run() " + isQuick());
 		if (plugin.isWorking()) {
-			plugin.debug("not checking upload queue because an action is in progress");
+			plugin.debug("not checking upload queue because an action is in progress; will try again shortly");
+			plugin.spawnUpload(90);
 			return;
 		}
-		
-		final Upload upload = plugin.persist.getUpload();
-		if (upload == null) {
-			if (Debug.ON) Debug.info("Upload - but nothing in queue");
-			return;
-		}
-		
-		if (!plugin.hasAction(upload.getType())) return;
-		
-		final File file = new File(upload.getName());
-		if (!file.exists()) return;
 		
 		plugin.setWorking(this, true);
+		startTime = plugin.startTime();
+		
+		if (isQuick()) {
+			runQuick();
+			plugin.spawnUpload(90);
+		}
+		else runOnce();
+		
+	}
+	
+	private void runOnce() {
+		upload(plugin.persist.getUpload());
+		
+		plugin.setWorking(this, false);
+	}
+	
+	private void runQuick() {
+		plugin.setWorking(this, true);
+		
+		Upload upload;
+		while ((upload = plugin.persist.getUpload()) != null)
+			upload(upload);
+		
+		plugin.debug("> total " + plugin.stopTime(startTime));
+		plugin.setWorking(this, false);
+	}
+	
+	private boolean isQuick() {
+		return quick;
+	}
+	
+	public TaskUpload setQuick(final boolean quick) {
+		this.quick = quick;
+		return this;
+	}
+	
+	private void upload(final Upload upload) {
+		if (upload == null || !plugin.hasAction(upload.getType())) return;
+		
+		final File file = new File(upload.getName());
+		if (!file.exists()) {
+			if (Debug.ON) Debug.info("failed uploading " + file + " (doesnt exist)");
+			return;
+		}
+		
 		plugin.info(" * " + upload.getType() + " uploading " + upload.getName());
 		plugin.startTime();
 		final String path = HttpUtils.encode(upload.getName().substring(plugin.config.getDir("destination").length() + 1)).replace("%2F", "/").replace("%5C", "/");
@@ -72,10 +110,10 @@ public class TaskUpload extends Thread {
 			plugin.debug("  \\ upload done " + plugin.stopTime());
 		}
 		catch (final HttpException e) {
-			plugin.logException(e, path);
+			if (e.getCause() instanceof FtpLoginException) plugin.warning("% failed to login to ftp server");
+			else if (e.getCause() instanceof FileNotFoundException) plugin.warning("% failed to upload to ftp server: " + e.getCause().getMessage());
+			else plugin.logException(e, path);
 		}
-		
-		plugin.setWorking(this, false);
 	}
 	
 	public String getAuthString(final String url) throws HttpException {

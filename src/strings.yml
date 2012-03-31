@@ -15,7 +15,7 @@ messages:
   backup_now: 'All backup actions will start momentarily. (%s)'
   backup_soon: 'All backup actions added to the queue. (%s)'
   backup_next: 'The next backup action has been started early. (%s)'
-  backup_upload: 'All upload actions added to the queue. (%s)'
+  backup_upload: 'All upload actions will start momentarily. (%s)'
   backup_done: 'All backup actions have completed.'
   action_starting: '%s &e%s&f momentarily...'
   action_done: '&aDone!'
@@ -36,7 +36,7 @@ commands:
     description: 'Trigger the next action in the queue. If no time is expired then nothing will happen.'
     broadcast: admins
   upload:
-    description: 'Triggers all upload actions. Next upload in queue will be processed within 5 minutes.'
+    description: 'Triggers all upload actions.'
     broadcast: admins
   reload:
     description: 'Reload configuration and reset queue to configured intervals.'
@@ -44,4 +44,4 @@ commands:
   dropbox:
     description: 'Add Dropbox authentication tokens. Visit https://minebackup-dropbox.appspot.com/ for values.'
     broadcast: false
-version-nomodify: '5.9.1'
+version-nomodify: '5.9.2'

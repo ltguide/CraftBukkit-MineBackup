@@ -56,8 +56,8 @@ public class CommandListener implements CommandExecutor {
 					plugin.spawnProcess();
 					break;
 				case UPLOAD:
-					plugin.fillUploadQueue();
 					plugin.broadcast(sender);
+					plugin.spawnUpload(0);
 					break;
 				case RELOAD:
 					plugin.reload();
@@ -65,7 +65,7 @@ public class CommandListener implements CommandExecutor {
 					break;
 				case DROPBOX:
 					plugin.persist.setDropboxAuth(args[1], args[2]);
-					plugin.spawnUpload();
+					plugin.spawnUpload(90);
 					plugin.broadcast(sender);
 					break;
 			}
