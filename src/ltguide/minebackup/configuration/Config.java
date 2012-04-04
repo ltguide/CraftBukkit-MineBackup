@@ -154,7 +154,13 @@ public class Config extends Configuration {
 		
 		final ConfigurationSection defaults = getConfigurationSection("default_settings");
 		
-		for (final String key : defaults.getKeys(false)) {
+		final Set<String> keys = defaults.getKeys(false);
+		if ("others".equals(type)) {
+			keys.remove("save");
+			settings.set("save", 0);
+		}
+		
+		for (final String key : keys) {
 			final boolean isAction = contains("default_actions." + key);
 			
 			if (settings.contains(key)) {
@@ -171,8 +177,6 @@ public class Config extends Configuration {
 			
 			plugin.debug(" - " + key + ": " + settings.get(key));
 		}
-		
-		if ("others".equals(type)) settings.set("save", 0);
 		
 		final File dir = getDir(type, name);
 		if (new File(dir, "level.dat_mcr").exists() || new File(dir + File.separator + "region", "r.0.0.mcr").exists()) plugin.warning(String.format("%% detected old map format files (%s); once backed up, remove level.dat_mcr and region%s*.mcr", dir.getPath(), File.separator));
