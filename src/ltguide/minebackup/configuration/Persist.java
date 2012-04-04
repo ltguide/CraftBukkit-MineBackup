@@ -28,7 +28,7 @@ public class Persist extends Configuration {
 	@Override
 	protected void migrate() {
 		/*
-		if (migrate(5, 9, 1)) {
+		if (migrate(5, 9, 2)) {
 			
 		}
 		*/

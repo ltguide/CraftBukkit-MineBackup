@@ -62,4 +62,4 @@ actions_on_startup:
   enabled: false
   delay: 2m
 debug: false
-version-nomodify: '5.9.2'
+version-nomodify: '5.9.3'
