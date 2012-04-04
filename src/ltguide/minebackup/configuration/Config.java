@@ -12,6 +12,7 @@ import java.util.zip.Deflater;
 import ltguide.base.Base;
 import ltguide.base.Debug;
 import ltguide.base.configuration.Configuration;
+import ltguide.base.data.SourceFilenameFilter;
 import ltguide.base.utils.HttpUtils;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Process;
@@ -38,7 +39,7 @@ public class Config extends Configuration {
 	
 	@Override
 	protected void migrate() {
-		if (versionCompare(5, 9)) {
+		if (migrate(5, 9)) {
 			if (Debug.ON) Debug.info("here comes better dirt!");
 			
 			final HashMap<String, Object> onStartup = new HashMap<String, Object>();
@@ -49,14 +50,14 @@ public class Config extends Configuration {
 			set("start_covered_in_dirt", null);
 		}
 		
-		if (versionCompare(0, 5, 8)) {
+		if (migrate(0, 5, 8)) {
 			if (Debug.ON) Debug.info("here comes action broadcasts!");
 			set("default_settings.broadcast", false);
 			set("commands", null);
 			set("messages", null);
 		}
 		
-		if (versionCompare(0, 5, 7)) {
+		if (migrate(0, 5, 7)) {
 			if (Debug.ON) Debug.info("here comes ftp!");
 			
 			//set("start_covered_in_dirt", false);
@@ -77,7 +78,7 @@ public class Config extends Configuration {
 			}
 		}
 		
-		if (versionCompare(0, 5, 5)) {
+		if (migrate(0, 5, 5)) {
 			final List<String> types = getStringList("others.plugins.exclude-types");
 			types.add("lck");
 			set("others.plugins.exclude-types", types);
@@ -136,27 +137,6 @@ public class Config extends Configuration {
 		fixBoolean(defaults, "broadcast");
 	}
 	
-	private int getTime(final ConfigurationSection cs, final String key) {
-		if (Debug.ON) Debug.info("checking " + cs.getCurrentPath() + "." + key);
-		
-		Object obj = cs.get(key);
-		if (obj != null) {
-			if (Debug.ON) Debug.info(" \\ " + obj + " (" + obj.getClass().getSimpleName() + ")");
-			
-			boolean valid = false;
-			if (obj instanceof Integer) valid = (Integer) obj > -1;
-			else if (obj instanceof String) valid = ((String) obj).matches("0|[1-9]\\d*[smhd]|(?:[0-1]?\\d|2[0-4]):[0-5][0-9]");
-			else valid = obj instanceof Boolean;
-			
-			if (!valid) {
-				plugin.configWarning(cs, key, obj);
-				obj = null;
-			}
-		}
-		
-		return getTime(obj);
-	}
-	
 	public boolean isLoaded(final String type, final String name) {
 		return loaded.contains(type + "-" + name);
 	}
@@ -165,10 +145,12 @@ public class Config extends Configuration {
 		if (isLoaded(type, name)) return false;
 		loaded.add(type + "-" + name);
 		
-		plugin.debug("loading config for " + type + "\\" + name);
-		
 		ConfigurationSection settings = getConfigurationSection(type + "." + name);
-		if (settings == null) settings = createSection(type + "." + name);
+		if (settings == null) {
+			settings = createSection(type + "." + name);
+			plugin.debug("Using default configuration for " + type + "\\" + name);
+		}
+		else plugin.debug("Loading configuration for " + type + "\\" + name);
 		
 		final ConfigurationSection defaults = getConfigurationSection("default_settings");
 		
@@ -186,6 +168,8 @@ public class Config extends Configuration {
 			else if (isAction) settings.set(key, getBoolean("default_actions." + key) ? defaults.get(key) : 0);
 			else if (defaults.isBoolean(key)) settings.set(key, defaults.getBoolean(key));
 			else settings.set(key, defaults.getInt(key));
+			
+			plugin.debug(" - " + key + ": " + settings.get(key));
 		}
 		
 		if ("others".equals(type)) settings.set("save", 0);
@@ -283,32 +267,5 @@ public class Config extends Configuration {
 		final String value = getString("ftp." + key);
 		if (value == null) throw new Exception();
 		return HttpUtils.encode(value);
-	}
-	
-	private class SourceFilenameFilter implements FilenameFilter {
-		private final List<String> folders;
-		private final List<String> types;
-		
-		public SourceFilenameFilter(final List<String> folders, final List<String> types) throws IllegalArgumentException {
-			if (folders == null && types == null) throw new IllegalArgumentException();
-			
-			this.folders = folders;
-			this.types = types;
-		}
-		
-		@Override
-		public boolean accept(final File dir, String name) {
-			final String path = dir.getName().toLowerCase();
-			name = name.toLowerCase();
-			
-			for (final String folder : folders)
-				if (path.indexOf(folder) == 0) return false;
-			
-			for (final String type : types)
-				if (name.endsWith(type)) return false;
-			
-			return true;
-		}
-		
 	}
 }

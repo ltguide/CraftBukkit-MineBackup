@@ -246,6 +246,7 @@ public class TaskProcess extends Thread {
 					if (target.exists()) plugin.warning("unable to delete: " + target);
 				}
 				break;
+			default:
 		}
 		
 		if (isBroadcast) plugin.getServer().broadcastMessage(plugin.getMessage("ACTION_DONE"));

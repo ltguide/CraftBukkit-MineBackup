@@ -68,6 +68,7 @@ public class CommandListener implements CommandExecutor {
 					plugin.spawnUpload(90);
 					plugin.broadcast(sender);
 					break;
+				default:
 			}
 		}
 		catch (final CommandException e) {

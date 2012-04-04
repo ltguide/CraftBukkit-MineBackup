@@ -14,7 +14,7 @@ public class Strings extends StringsConfiguration {
 	
 	@Override
 	protected void migrate() {
-		if (versionCompare(5, 9, 1)) {
+		if (migrate(5, 9, 1)) {
 			if (Debug.ON) Debug.info("changing upload command description!");
 			
 			set("messages.backup_upload", "All upload actions will start momentarily. (%s)");
