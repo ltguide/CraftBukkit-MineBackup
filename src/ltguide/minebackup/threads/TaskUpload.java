@@ -71,8 +71,6 @@ public class TaskUpload extends Thread {
 	}
 	
 	private void runQuick() {
-		plugin.setWorking(this, true);
-		
 		Upload upload;
 		while ((upload = plugin.persist.getUpload()) != null)
 			upload(upload);

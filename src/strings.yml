@@ -1,4 +1,6 @@
 # For an explanation of these settings, visit https://github.com/ltguide/CraftBukkit-MineBackup/wiki/Strings
+# 
+# To disable the broadcast when an action is done, set messages.action_done to ''.
 
 prefix: '&e[MineBackup]&f'
 messages:

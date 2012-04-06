@@ -85,7 +85,7 @@ public class CommandListener implements CommandExecutor {
 		
 		final StringBuilder sb = new StringBuilder();
 		for (final String action : plugin.actions)
-			if ((interval = plugin.config.getInterval(type, name, action)) != 0) sb.append(plugin.getMessage("STATUS_ACTION", action, getNext(msecs, type, name, action), plugin.convertMilli2Time(interval)));
+			if (plugin.hasAction(action) && (interval = plugin.config.getInterval(type, name, action)) != 0) sb.append(plugin.getMessage("STATUS_ACTION", action, getNext(msecs, type, name, action), plugin.convertMilli2Time(interval)));
 		
 		plugin.send(sender, plugin.getMessage("STATUS", "worlds".equals(type) ? "World" : "Other", name, plugin.persist.isDirty(type, name), sb.toString()));
 	}

@@ -30,7 +30,7 @@ public class MineBackup extends Base {
 	public Config config;
 	public Strings strings;
 	public Persist persist;
-	public LinkedHashSet<String> actions = new LinkedHashSet<String>(Arrays.asList("save", "copy", "compress", "cleanup"));
+	public LinkedHashSet<String> actions = new LinkedHashSet<String>(Arrays.asList("save", "copy", "compress", "cleanup", "dropbox", "ftp"));
 	
 	@Override
 	public void onDisable() {

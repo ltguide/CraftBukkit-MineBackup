@@ -263,7 +263,7 @@ public class TaskProcess extends Thread {
 				plugin.debug("broadcast(process)->sleep(): " + e.toString());
 			}
 			
-			return plugin.strings.getString("action_done") != null;
+			return !"".equals(plugin.strings.getString("messages.action_done", ""));
 		}
 		
 		return false;

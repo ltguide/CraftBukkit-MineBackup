@@ -163,7 +163,7 @@ public class Config extends Configuration {
 		for (final String key : keys) {
 			final boolean isAction = contains("default_actions." + key);
 			
-			if (settings.contains(key)) {
+			if (settings.isSet(key)) {
 				if (isAction) {
 					if (settings.isBoolean(key)) settings.set(key, settings.getBoolean(key) ? defaults.get(key) : 0);
 					else settings.set(key, getTime(settings, key));
@@ -245,7 +245,7 @@ public class Config extends Configuration {
 		for (final String type : Arrays.asList("worlds", "others")) {
 			final ConfigurationSection section = getConfigurationSection(type);
 			for (final String key : section.getKeys(false))
-				if (getTime(section, key + "." + action) > 0) return true;
+				if (getTime(section, key + "." + action) != 0) return true;
 		}
 		
 		return false;
