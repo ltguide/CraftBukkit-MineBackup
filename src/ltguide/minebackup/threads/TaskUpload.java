@@ -110,7 +110,7 @@ public class TaskUpload extends Thread {
 		catch (final HttpException e) {
 			if (e.getCause() instanceof FtpLoginException) plugin.warning("% failed to login to ftp server");
 			else if (e.getCause() instanceof FileNotFoundException) plugin.warning("% failed to upload to ftp server: " + e.getCause().getMessage());
-			else plugin.logException(e, path);
+			else plugin.warning("% " + e.getMessage());
 		}
 	}
 	

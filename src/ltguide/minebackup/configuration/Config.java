@@ -2,6 +2,7 @@ package ltguide.minebackup.configuration;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -178,12 +179,22 @@ public class Config extends Configuration {
 			plugin.debug(" - " + key + ": " + settings.get(key));
 		}
 		
-		final File dir = getDir(type, name);
-		if (new File(dir, "level.dat_mcr").exists() || new File(dir + File.separator + "region", "r.0.0.mcr").exists()) plugin.warning(String.format("%% detected old map format files (%s); once backed up, remove level.dat_mcr and region%s*.mcr", dir.getPath(), File.separator));
-		
-		//plugin.saveConfig(); //not for production (overwrites string-based times with integers)
+		checkMapFormat(getDir(type, name));
 		
 		return getBoolean("actions_on_startup.enabled");
+	}
+	
+	private void checkMapFormat(final File dir) {
+		final List<String> files = new ArrayList<String>();
+		
+		if (new File(dir, "level.dat_mcr").exists()) files.add("level.dat_mcr");
+		
+		for (String path : Arrays.asList("", "DIM-1", "DIM1")) {
+			path += File.separator + "region";
+			if (new File(dir + File.separator + path, "r.0.0.mcr").exists()) files.add("*.mcr files from " + path);
+		}
+		
+		if (files.size() > 0) plugin.warning(String.format("%% detected old map format files (%s); once backed up, remove %s", dir.getPath(), plugin.joinString(files.toArray(), " and ")));
 	}
 	
 	public long getInterval(final Process process) {
