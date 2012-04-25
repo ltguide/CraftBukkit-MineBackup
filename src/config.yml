@@ -46,6 +46,13 @@ others:
     exclude-types:
       - jar
       - lck
+  root:
+    copy: false
+    compress: false
+    exclude-folders:
+      - '*'
+    exclude-types:
+      - jar
 directories:
   worlds: .
   others: .

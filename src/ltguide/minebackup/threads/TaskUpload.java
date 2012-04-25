@@ -99,7 +99,7 @@ public class TaskUpload extends Thread {
 		
 		plugin.info(" * " + upload.getType() + " uploading " + upload.getName());
 		plugin.startTime();
-		final String path = HttpUtils.encode(upload.getName().substring(plugin.config.getDir("destination").length() + 1)).replace("%2F", "/").replace("%5C", "/");
+		final String path = HttpUtils.encode(upload.getName().substring(plugin.config.getDir("destination").getPath().length() + 1)).replace("%2F", "/").replace("%5C", "/");
 		
 		try {
 			if ("dropbox".equals(upload.getType())) HttpUtils.put("https://api-content.dropbox.com/1/files_put/sandbox/" + path, getAuthString(path), file);

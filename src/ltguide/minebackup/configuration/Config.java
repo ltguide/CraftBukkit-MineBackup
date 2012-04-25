@@ -41,9 +41,17 @@ public class Config extends Configuration {
 	@Override
 	protected void migrate() {
 		if (migrate(5, 9, 3)) {
-			if (Debug.ON) Debug.info("here comes timezone fix!");
+			if (Debug.ON) Debug.info("here comes timezone fix and root files!");
 			
 			set("destination.timezone-offset", 0);
+			
+			final HashMap<String, Object> root = new HashMap<String, Object>();
+			root.put("copy", false);
+			root.put("compress", false);
+			root.put("exclude-folders", Arrays.asList(new String[] { "*" }));
+			root.put("exclude-types", Arrays.asList(new String[] { "jar" }));
+			
+			set("others.root", createSection("others.root", root));
 		}
 		
 		if (migrate(5, 9)) {
@@ -227,11 +235,13 @@ public class Config extends Configuration {
 		}
 	}
 	
-	public String getDir(final String dir) {
-		return new File(getString("directories." + dir)).getPath();
+	public File getDir(final String dir) {
+		return new File(getString("directories." + dir));
 	}
 	
 	public File getDir(final String dir, final Process process) {
+		if ("others".equals(dir) && "root".equals(process.getName())) return getDir(dir);
+		
 		return getDir(dir, process.getName());
 	}
 	
