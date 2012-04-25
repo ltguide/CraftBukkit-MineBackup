@@ -151,7 +151,10 @@ public class MineBackup extends Base {
 	private void checkUpload(final String type) {
 		if (Debug.ON) Debug.info("checkUpload(\"" + type + "\")");
 		
-		if (config.hasAction(type) && upload.hasAuth(type)) actions.add(type);
+		if (config.hasAction(type) && upload.hasAuth(type)) {
+			debug("Adding " + type + " to available actions");
+			actions.add(type);
+		}
 		else actions.remove(type);
 	}
 	
