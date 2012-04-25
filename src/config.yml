@@ -53,13 +53,14 @@ others:
       - '*'
     exclude-types:
       - jar
+      - lck
 directories:
   worlds: .
   others: .
   destination: ./minebackup
 destination:
   format: '%Y-%M-%D_%H-%m-%S'
-  timezone-offset: '0h'
+  timezone-offset: 0.0
   prepend-world: false
 ftp:
   server: 'ftpserver:21'

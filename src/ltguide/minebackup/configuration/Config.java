@@ -43,13 +43,13 @@ public class Config extends Configuration {
 		if (migrate(5, 9, 3)) {
 			if (Debug.ON) Debug.info("here comes timezone fix and root files!");
 			
-			set("destination.timezone-offset", 0);
+			set("destination.timezone-offset", 0d);
 			
 			final HashMap<String, Object> root = new HashMap<String, Object>();
 			root.put("copy", false);
 			root.put("compress", false);
 			root.put("exclude-folders", Arrays.asList(new String[] { "*" }));
-			root.put("exclude-types", Arrays.asList(new String[] { "jar" }));
+			root.put("exclude-types", Arrays.asList(new String[] { "jar", "lck" }));
 			
 			set("others.root", createSection("others.root", root));
 		}
@@ -151,8 +151,7 @@ public class Config extends Configuration {
 		
 		fixBoolean(defaults, "broadcast");
 		
-		final ConfigurationSection destination = getConfigurationSection("destination");
-		destination.set("timezone-offset", getTime(destination, "timezone-offset"));
+		set("destination.timezone-offset", getDouble("destination.timezone-offset", 0));
 	}
 	
 	public boolean isLoaded(final String type, final String name) {
