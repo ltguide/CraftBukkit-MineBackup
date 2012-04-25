@@ -52,6 +52,7 @@ directories:
   destination: ./minebackup
 destination:
   format: '%Y-%M-%D_%H-%m-%S'
+  timezone-offset: '0h'
   prepend-world: false
 ftp:
   server: 'ftpserver:21'

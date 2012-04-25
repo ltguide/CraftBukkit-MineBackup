@@ -40,6 +40,12 @@ public class Config extends Configuration {
 	
 	@Override
 	protected void migrate() {
+		if (migrate(5, 9, 3)) {
+			if (Debug.ON) Debug.info("here comes timezone fix!");
+			
+			set("destination.timezone-offset", 0);
+		}
+		
 		if (migrate(5, 9)) {
 			if (Debug.ON) Debug.info("here comes better dirt!");
 			
@@ -136,6 +142,9 @@ public class Config extends Configuration {
 		fixIntRange(defaults, "keep", 1, 168);
 		
 		fixBoolean(defaults, "broadcast");
+		
+		final ConfigurationSection destination = getConfigurationSection("destination");
+		destination.set("timezone-offset", getTime(destination, "timezone-offset"));
 	}
 	
 	public boolean isLoaded(final String type, final String name) {

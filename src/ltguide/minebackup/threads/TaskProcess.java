@@ -279,6 +279,8 @@ public class TaskProcess extends Thread {
 	
 	private String getFormat(final String name, final World world) {
 		final Calendar calendar = Calendar.getInstance();
+		calendar.add(Calendar.SECOND, plugin.config.getInt("destination.timezone-offset", 0));
+		
 		final Map<String, String> formats = new HashMap<String, String>();
 		formats.put("%Y", String.valueOf(calendar.get(Calendar.YEAR)));
 		formats.put("%M", padZero(calendar.get(Calendar.MONTH) + 1));
