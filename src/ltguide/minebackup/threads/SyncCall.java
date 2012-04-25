@@ -1,5 +1,6 @@
 package ltguide.minebackup.threads;
 
+import java.util.List;
 import java.util.concurrent.Callable;
 
 import ltguide.minebackup.MineBackup;
@@ -13,6 +14,7 @@ public class SyncCall implements Callable<Boolean> {
 	private final MineBackup plugin;
 	private final String action;
 	private final World world;
+	private List<Player> players;
 	private int x;
 	private int z;
 	
@@ -25,18 +27,24 @@ public class SyncCall implements Callable<Boolean> {
 	@Override
 	public Boolean call() {
 		if ("save".equals(action)) {
-			for (final Player player : world.getPlayers())
+			for (final Player player : players = world.getPlayers())
 				if (player.isOnline()) player.saveData();
 			
 			final Location spawn = world.getSpawnLocation();
 			x = (int) spawn.getX() >> 4;
 			z = (int) spawn.getZ() >> 4;
 			
-			int chunks = 0;
-			for (final Chunk chunk : world.getLoadedChunks())
-				if (!keepChunk(chunk) && world.unloadChunk(chunk.getX(), chunk.getZ(), true, true)) chunks++;
+			final Chunk[] chunks = world.getLoadedChunks();
+			int count = 0;
+			for (final Chunk chunk : chunks)
+				if (!isSpawnChunk(chunk) && !isChunkInUse(chunk)) {
+					world.unloadChunk(chunk.getX(), chunk.getZ(), true);
+					count++;
+				}
 			
-			plugin.debug(" | unloaded " + chunks + " chunks @ " + plugin.stopTime());
+			plugin.debug(" | unloaded " + count + " of " + chunks.length + " chunks @ " + plugin.stopTime());
+			
+			if (world.getLoadedChunks().length != chunks.length - count) plugin.debug(" | however, something caused some chunks to stay loaded (" + world.getLoadedChunks().length + ")");
 			
 			world.save();
 		}
@@ -45,7 +53,18 @@ public class SyncCall implements Callable<Boolean> {
 		return false;
 	}
 	
-	private boolean keepChunk(final Chunk chunk) {
+	private boolean isChunkInUse(final Chunk chunk) {
+		for (final Player player : players) {
+			final Location locaction = player.getLocation();
+			final int range = player.isOnline() ? 256 : 16;
+			
+			if (Math.abs(locaction.getBlockX() - (chunk.getX() << 4)) <= range && Math.abs(locaction.getBlockZ() - (chunk.getZ() << 4)) <= range) return true;
+		}
+		
+		return false;
+	}
+	
+	private boolean isSpawnChunk(final Chunk chunk) {
 		if (!world.getKeepSpawnInMemory()) return false;
 		
 		return x - 13 <= chunk.getX() && chunk.getX() <= x + 13 && z - 13 <= chunk.getZ() && chunk.getZ() <= z + 13;
