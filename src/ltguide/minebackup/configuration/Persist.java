@@ -16,6 +16,7 @@ import ltguide.minebackup.data.Process;
 import ltguide.minebackup.data.Upload;
 
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 
 public class Persist extends Configuration {
 	private static final long maxDropboxSize = 180 * 1024 * 1024;
@@ -66,7 +67,12 @@ public class Persist extends Configuration {
 	}
 	
 	public boolean hasPlayers(final World world) {
-		if (world != null) return world.getPlayers().size() > 0;
+		if (world != null) {
+			for (final Player player : world.getPlayers())
+				if (player.isOnline()) return true;
+			
+			return false;
+		}
 		
 		return plugin.getServer().getOnlinePlayers().length > 0;
 	}
