@@ -152,6 +152,10 @@ public class Config extends Configuration {
 		fixBoolean(defaults, "broadcast");
 		
 		set("destination.timezone-offset", getDouble("destination.timezone-offset", 0));
+		
+		final ConfigurationSection directories = getConfigurationSection("directories");
+		for (final String key : directories.getKeys(false))
+			fixSeparator(directories, key);
 	}
 	
 	public boolean isLoaded(final String type, final String name) {
@@ -175,6 +179,7 @@ public class Config extends Configuration {
 		if ("others".equals(type)) {
 			keys.remove("save");
 			settings.set("save", 0);
+			fixSeparator(settings, "path");
 		}
 		
 		for (final String key : keys) {
@@ -239,7 +244,12 @@ public class Config extends Configuration {
 	}
 	
 	public File getDir(final String dir, final Process process) {
-		if ("others".equals(dir) && "root".equals(process.getName())) return getDir(dir);
+		if ("others".equals(dir)) {
+			if ("root".equals(process.getName())) return getDir(dir);
+			
+			final String path = getString(process.getType() + "." + process.getName() + ".path", "");
+			if (!"".equals(path)) return getDir(dir, path); //.replaceAll("\\", "/")
+		}
 		
 		return getDir(dir, process.getName());
 	}
