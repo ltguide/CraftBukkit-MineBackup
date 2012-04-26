@@ -253,7 +253,7 @@ public class TaskProcess extends Thread {
 	}
 	
 	private boolean broadcast(final Process process) {
-		if (plugin.config.getBoolean(process, "broadcast")) {
+		if (!isQuick() && plugin.config.getBoolean(process, "broadcast") && plugin.config.getBoolean("broadcast_settings.on_" + process.getAction(), false)) {
 			plugin.getServer().broadcastMessage(plugin.getMessage("ACTION_STARTING", plugin.getMessage("ACTION_" + process.getAction().toUpperCase()), process.getType() + "\\" + process.getName()));
 			
 			try {
@@ -263,7 +263,7 @@ public class TaskProcess extends Thread {
 				plugin.debug("broadcast(process)->sleep(): " + e.toString());
 			}
 			
-			return !"".equals(plugin.strings.getString("messages.action_done", ""));
+			return plugin.config.getBoolean("broadcast_settings.when_done", false);
 		}
 		
 		return false;

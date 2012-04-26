@@ -40,33 +40,44 @@ public class Config extends Configuration {
 	
 	@Override
 	protected void migrate() {
+		final HashMap<String, Object> map = new HashMap<String, Object>();
+		
 		if (migrate(5, 9, 3)) {
-			if (Debug.ON) Debug.info("here comes timezone fix and root files!");
+			if (Debug.ON) Debug.info("here comes timezone fix, root files, and broadcast_settings!");
 			
 			set("destination.timezone-offset", 0d);
 			
-			final HashMap<String, Object> root = new HashMap<String, Object>();
-			root.put("copy", false);
-			root.put("compress", false);
-			root.put("exclude-folders", Arrays.asList(new String[] { "*" }));
-			root.put("exclude-types", Arrays.asList(new String[] { "jar", "lck" }));
+			map.clear();
+			map.put("copy", false);
+			map.put("compress", false);
+			map.put("exclude-folders", Arrays.asList(new String[] { "*" }));
+			map.put("exclude-types", Arrays.asList(new String[] { "jar", "lck" }));
 			
-			set("others.root", createSection("others.root", root));
+			set("others.root", createSection("others.root", map));
+			
+			map.clear();
+			map.put("on_save", true);
+			map.put("on_copy", false);
+			map.put("on_compress", false);
+			map.put("when_done", true);
+			
+			set("broadcast_settings", createSection("broadcast_settings", map));
 		}
 		
 		if (migrate(5, 9)) {
 			if (Debug.ON) Debug.info("here comes better dirt!");
 			
-			final HashMap<String, Object> onStartup = new HashMap<String, Object>();
-			onStartup.put("enabled", getBoolean("start_covered_in_dirt"));
-			onStartup.put("delay", "2m");
+			map.clear();
+			map.put("enabled", getBoolean("start_covered_in_dirt"));
+			map.put("delay", "2m");
 			
-			set("actions_on_startup", createSection("actions_on_startup", onStartup));
+			set("actions_on_startup", createSection("actions_on_startup", map));
 			set("start_covered_in_dirt", null);
 		}
 		
 		if (migrate(0, 5, 8)) {
 			if (Debug.ON) Debug.info("here comes action broadcasts!");
+			
 			set("default_settings.broadcast", false);
 			set("commands", null);
 			set("messages", null);
@@ -78,13 +89,13 @@ public class Config extends Configuration {
 			//set("start_covered_in_dirt", false);
 			
 			if (isSet("ftp.ftphost")) {
-				final HashMap<String, String> ftp = new HashMap<String, String>();
-				ftp.put("server", getString("ftphost") + ":" + getString("ftpport"));
-				ftp.put("path", getString("ftptargetdir"));
-				ftp.put("username", getString("ftpuser"));
-				ftp.put("password", getString("ftppassword"));
+				map.clear();
+				map.put("server", getString("ftphost") + ":" + getString("ftpport"));
+				map.put("path", getString("ftptargetdir"));
+				map.put("username", getString("ftpuser"));
+				map.put("password", getString("ftppassword"));
 				
-				set("ftp", createSection("ftp", ftp));
+				set("ftp", createSection("ftp", map));
 			}
 			else {
 				set("default_actions.ftp", false);
@@ -95,7 +106,8 @@ public class Config extends Configuration {
 		
 		if (migrate(0, 5, 5)) {
 			final List<String> types = getStringList("others.plugins.exclude-types");
-			types.add("lck");
+			if (!types.contains("lck")) types.add("lck");
+			
 			set("others.plugins.exclude-types", types);
 		}
 		

@@ -20,6 +20,11 @@ public class Strings extends StringsConfiguration {
 			set("messages.usage_memory", "&f%s&e MiB allocated&6; &f%s&e MiB free");
 			set("messages.usage_world", "&f%s&6: &f%s&e chunks&6; &f%s&e entities");
 			set("commands.usage.description", "Display the server memory and chunk/entities per world");
+			
+			if ("".equals(getString("messages.action_done", ""))) {
+				plugin.warning("To disable Action Done message, set broadcast_setting.when_done to false in config.yml");
+				set("messages.action_done", "&aDone!");
+			}
 		}
 		
 		if (migrate(5, 9, 1)) {

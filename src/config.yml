@@ -62,6 +62,11 @@ destination:
   format: '%Y-%M-%D_%H-%m-%S'
   timezone-offset: 0.0
   prepend-world: false
+broadcast_settings:
+  on_save: true
+  on_copy: false
+  on_compress: false
+  when_done: true
 ftp:
   server: 'ftpserver:21'
   path: '/'
