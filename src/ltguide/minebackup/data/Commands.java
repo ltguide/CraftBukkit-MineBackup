@@ -3,13 +3,14 @@ package ltguide.minebackup.data;
 import ltguide.base.data.ICommand;
 
 public enum Commands implements ICommand {
-	STATUS("status", Messages.STATUS_NOTE, "", false),
+	NEXT("manual", Messages.BACKUP_NEXT, "", false),
 	NOW("manual", Messages.BACKUP_NOW, "", false),
 	SOON("manual", Messages.BACKUP_SOON, "", false),
-	NEXT("manual", Messages.BACKUP_NEXT, "", false),
 	UPLOAD("manual", Messages.BACKUP_UPLOAD, "", false),
+	STATUS("status", Messages.STATUS_NOTE, "", false),
+	DROPBOX("dropbox", Messages.DROPBOX, "<key> <secret>", false),
 	RELOAD("reload", Messages.RELOAD, "", false),
-	DROPBOX("dropbox", Messages.DROPBOX, "<key> <secret>", false);
+	USAGE("usage", null, "", false);
 	
 	private String permission;
 	private String message;
@@ -18,7 +19,7 @@ public enum Commands implements ICommand {
 	
 	Commands(final String permission, final Messages message, final String syntax, final boolean usesTarget) {
 		this.permission = permission;
-		this.message = message.name();
+		this.message = message == null ? null : message.name();
 		this.syntax = syntax;
 		this.usesTarget = usesTarget;
 	}

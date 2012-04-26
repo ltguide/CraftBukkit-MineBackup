@@ -14,6 +14,14 @@ public class Strings extends StringsConfiguration {
 	
 	@Override
 	protected void migrate() {
+		if (migrate(5, 9, 3)) {
+			if (Debug.ON) Debug.info("adding usage command!");
+			
+			set("messages.usage_memory", "&f%s&e MiB allocated&6; &f%s&e MiB free");
+			set("messages.usage_world", "&f%s&6: &f%s&e chunks&6; &f%s&e entities");
+			set("commands.usage.description", "Display the server memory and chunk/entities per world");
+		}
+		
 		if (migrate(5, 9, 1)) {
 			if (Debug.ON) Debug.info("changing upload command description!");
 			

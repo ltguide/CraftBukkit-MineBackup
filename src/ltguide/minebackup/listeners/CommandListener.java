@@ -68,6 +68,15 @@ public class CommandListener implements CommandExecutor {
 					plugin.spawnUpload(90);
 					plugin.broadcast(sender);
 					break;
+				case USAGE:
+					final Runtime runtime = Runtime.getRuntime();
+					final long total = runtime.totalMemory() / 1024 / 1024;
+					final long max = runtime.maxMemory() / 1024 / 1024;
+					plugin.send(sender, plugin.getMessage("USAGE_MEMORY", total == max ? total : total + "/" + max, runtime.freeMemory() / 1024 / 1024));
+					
+					for (final World world : Bukkit.getWorlds())
+						plugin.send(sender, plugin.getMessage("USAGE_WORLD", world.getName(), world.getLoadedChunks().length, world.getEntities().size()));
+					break;
 				default:
 			}
 		}

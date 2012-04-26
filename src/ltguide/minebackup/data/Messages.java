@@ -3,29 +3,31 @@ package ltguide.minebackup.data;
 import ltguide.base.data.IMessage;
 
 public enum Messages implements IMessage {
-	BUSY(true),
+	TARGET_NONE(true),
+	TARGET_REQUIRED(true),
 	SYNTAX(false),
 	PERMISSION(false),
-	RELOAD(true),
-	STATUS(true),
-	STATUS_ACTION(false),
-	STATUS_TIME_UNDER(false),
-	STATUS_TIME_OVER(false),
-	STATUS_TIME_NONE(false),
-	STATUS_NOTE(true),
+	BUSY(true),
+	BACKUP_NEXT(true),
 	BACKUP_NOW(true),
 	BACKUP_SOON(true),
-	BACKUP_NEXT(true),
 	BACKUP_UPLOAD(true),
 	BACKUP_DONE(true),
+	STATUS(true),
+	STATUS_ACTION(false),
+	STATUS_TIME_NONE(false),
+	STATUS_TIME_OVER(false),
+	STATUS_TIME_UNDER(false),
+	STATUS_NOTE(true),
 	ACTION_STARTING(true),
-	ACTION_DONE(true),
-	ACTION_SAVE(false),
-	ACTION_COPY(false),
 	ACTION_COMPRESS(false),
+	ACTION_COPY(false),
+	ACTION_SAVE(false),
+	ACTION_DONE(true),
 	DROPBOX(true),
-	TARGET_NONE(true),
-	TARGET_REQUIRED(true);
+	RELOAD(true),
+	USAGE_MEMORY(true),
+	USAGE_WORLD(true);
 	
 	private boolean usesPrefix;
 	

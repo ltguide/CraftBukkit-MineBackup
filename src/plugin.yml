@@ -18,13 +18,16 @@ permissions:
   minebackup.admin:
     description: Allows admin command functionality
     children:
-       minebackup.reload: true
        minebackup.dropbox: true
+       minebackup.reload: true
+       minebackup.usage: true
   minebackup.manual:
     description: Allows you to manually control backup process
   minebackup.status:
     description: Allows you to view backup status
-  minebackup.reload:
-    description: Allows you to reload configuration
   minebackup.dropbox:
     description: Allows you to update dropbox configuration
+  minebackup.reload:
+    description: Allows you to reload configuration
+  minebackup.usage:
+    description: Allows you to view server memory and chunk/entities per world

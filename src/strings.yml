@@ -6,44 +6,48 @@ prefix: '&e[MineBackup]&f'
 messages:
   syntax: '&6Syntax: &f%s &6--&e %s'
   permission: '&cYou do not have permission.'
-  reload: '&aReloaded configuration. (%s)'
   busy: 'An action is currently in progress. Try again in a few seconds.'
-  status: '&6%s: &f%s (&edirty: &f%s) %s'
-  status_action: '&6%s: &f%s (&e%s&f)&6; '
-  status_time_under: 'waiting %s'
-  status_time_over: 'soon (%s over)'
-  status_time_none: 'not scheduled'
-  status_note: 'New actions will be scheduled once a minute.'
+  backup_next: 'The next backup action has been started early. (%s)'
   backup_now: 'All backup actions will start momentarily. (%s)'
   backup_soon: 'All backup actions added to the queue. (%s)'
-  backup_next: 'The next backup action has been started early. (%s)'
   backup_upload: 'All upload actions will start momentarily. (%s)'
   backup_done: 'All backup actions have completed.'
+  status: '&6%s: &f%s (&edirty: &f%s) %s'
+  status_action: '&6%s: &f%s (&e%s&f)&6; '
+  status_time_none: 'not scheduled'
+  status_time_over: 'soon (%s over)'
+  status_time_under: 'waiting %s'
+  status_note: 'New actions will be scheduled once a minute.'
   action_starting: '%s &e%s&f momentarily...'
-  action_done: '&aDone!'
-  action_save: 'Saving'
-  action_copy: 'Copying'
   action_compress: 'Compressing'
+  action_copy: 'Copying'
+  action_save: 'Saving'
+  action_done: '&aDone!'
   dropbox: 'Dropbox authentication completed. (%s)'
+  reload: '&aReloaded configuration. (%s)'
+  usage_memory: '&f%s&e MiB allocated&6; &f%s&e MiB free'
+  usage_world: '&f%s&6: &f%s&e chunks&6; &f%s&e entities'
 commands:
-  status:
-    description: 'Display the scheduled time and interval for each action in the queue.'
+  next:
+    description: 'Trigger the next action in the queue. If no time is expired then nothing will happen.'
+    broadcast: admins
   now:
     description: 'Expire all action times and trigger them NOW. (excludes uploads)'
     broadcast: users
   soon:
     description: 'Expire all action times so that they will trigger on the following queue checks. (excludes uploads)'
     broadcast: admins
-  next:
-    description: 'Trigger the next action in the queue. If no time is expired then nothing will happen.'
-    broadcast: admins
   upload:
     description: 'Triggers all upload actions.'
     broadcast: admins
-  reload:
-    description: 'Reload configuration and reset queue to configured intervals.'
-    broadcast: false
+  status:
+    description: 'Display the scheduled time and interval for each action in the queue.'
   dropbox:
     description: 'Add Dropbox authentication tokens. Visit https://minebackup-dropbox.appspot.com/ for values.'
     broadcast: false
+  reload:
+    description: 'Reload configuration and reset queue to configured intervals.'
+    broadcast: false
+  usage:
+    description: 'Display the server memory and chunk/entities per world'
 version-nomodify: '5.9.4'
