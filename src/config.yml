@@ -71,7 +71,7 @@ ftp:
   server: 'ftpserver:21'
   path: '/'
   username: 'user'
-  password: '123'
+  password: ''
 actions_on_startup:
   enabled: false
   delay: 2m
