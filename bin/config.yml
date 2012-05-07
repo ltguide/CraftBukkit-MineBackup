@@ -1,0 +1,79 @@
+# For a full explanation of these settings, visit https://github.com/ltguide/CraftBukkit-MineBackup/wiki/Configuration
+# 
+# For quick setup, just set copy or compress to true under default_actions. Typical users shouldn't enable both copy and compress.
+# You don't need to list every world or setting under that world unless you want to override the defaults.
+# The cleanup action does not need to be enabled unless you want it to happen on a set schedule. When disabled, it will automatically trigger after copy/compress.
+# The 'ti:me' based settings are in 24-hour format and thus happen once a day.
+# You can use 'ti:me', 15m, or 300 for any of the action intervals.
+# If you set world-container in bukkit.yml, change directories.worlds as well.
+
+default_actions:
+  save: true
+  copy: false
+  compress: false
+  cleanup: false
+  dropbox: false
+  ftp: false
+default_settings:
+  save: 15m
+  copy: 1h
+  compress: 1h
+  compression_level: 9
+  cleanup: '2:00'
+  dropbox: '3:00'
+  ftp: '3:30'
+  keep: 24
+  broadcast: false
+worlds:
+  yourworldname:
+    save: true
+    compress: true
+  yourworldname_nether:
+    save: 30m
+    compress: 3h
+    keep: 8
+  yourworldname_the_end:
+    save: 30m
+    copy: 6h
+    keep: 4
+others:
+  plugins:
+    copy: false
+    compress: false
+    dropbox: false
+    exclude-folders:
+      - tiles
+    exclude-types:
+      - jar
+      - lck
+  root:
+    copy: false
+    compress: false
+    exclude-folders:
+      - '*'
+    exclude-types:
+      - jar
+      - lck
+directories:
+  worlds: .
+  others: .
+  destination: ./minebackup
+destination:
+  format: '%Y-%M-%D_%H-%m-%S'
+  timezone-offset: 0.0
+  prepend-world: false
+broadcast_settings:
+  on_save: true
+  on_copy: false
+  on_compress: false
+  when_done: true
+ftp:
+  server: 'ftpserver:21'
+  path: '/'
+  username: 'user'
+  password: ''
+actions_on_startup:
+  enabled: false
+  delay: 2m
+debug: false
+version-nomodify: '5.9.4'
