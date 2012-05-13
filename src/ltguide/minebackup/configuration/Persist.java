@@ -138,10 +138,16 @@ public class Persist extends Configuration {
 			return false;
 		}
 		
-		List<Map<?, ?>> list = getMapList("upload");
-		if (list == null) list = new ArrayList<Map<?, ?>>();
+		List<Map<String, Object>> list;
+        try{
+            list = getMapList("upload");
+        }catch (NullPointerException e){
+            list = null;
+        }
+
+		if (list == null) list = new ArrayList<Map<String, Object>>();
 		
-		final HashMap<String, String> upload = new HashMap<String, String>();
+		final Map<String, Object> upload = new HashMap<String, Object>();
 		upload.put("type", type);
 		upload.put("name", name);
 		
@@ -152,14 +158,20 @@ public class Persist extends Configuration {
 	}
 	
 	public Upload getUpload() {
-		final List<Map<?, ?>> list = getMapList("upload");
-		if (list == null || list.size() == 0) return null;
-		
-		final Map<?, ?> upload = list.get(0);
-		list.remove(0);
-		set("upload", list);
-		
-		return new Upload(upload.get("type").toString(), upload.get("name").toString());
+
+        try{
+            final List<Map<String, Object>> list = getMapList("upload");
+            if (list == null || list.size() == 0) return null;
+            final Map<?, ?> upload = list.get(0);
+            list.remove(0);
+            set("upload", list);
+
+            return new Upload(upload.get("type").toString(), upload.get("name").toString());
+        }catch (NullPointerException e){
+            if(Debug.ON) Debug.warning("getMapList Null");
+            if(Debug.ON) throw e;
+            return null;
+        }
 	}
 	
 	public String getDropboxAuth(final String key) {
