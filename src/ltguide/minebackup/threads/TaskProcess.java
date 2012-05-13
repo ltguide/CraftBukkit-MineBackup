@@ -108,7 +108,9 @@ public class TaskProcess extends Thread {
 	
 	private void fillUploadQueue(final HashSet<String> actions, final String type, final String name) {
 		for (final String action : actions)
-			if (plugin.config.getInterval(type, name, action) != 0) process(new Process(type, name, action, 0L));
+			if (plugin.config.getBoolean(type+"."+name+"."+action)) {
+                process(new Process(type, name, action, 0L));
+            }
 	}
 	
 	@Override
@@ -207,6 +209,7 @@ public class TaskProcess extends Thread {
 				break;
 			
 			case DROPBOX:
+                if (plugin.hasAction(process.getAction()) && plugin.persist.addUpload(process)) logAction(" * queuing " + process.getAction() + " upload of latest %s\\%s", process);
 			case FTP:
 				if (plugin.hasAction(process.getAction()) && plugin.persist.addUpload(process)) logAction(" * queuing " + process.getAction() + " upload of latest %s\\%s", process);
 				break;

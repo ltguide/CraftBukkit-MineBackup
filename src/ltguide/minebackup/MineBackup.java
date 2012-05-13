@@ -111,10 +111,10 @@ public class MineBackup extends Base {
 		
 		checkUpload("dropbox");
 		checkUpload("ftp");
-		if (actions.size() == 4) return;
+		//if (actions.size() == 4) return;
 		
 		if (delay == 0) {
-			if (Debug.ON) Debug.info("spawnProcess(); delay 0 (quick mode)");
+			if (Debug.ON) Debug.info("spawnUpload(); delay 0 (quick mode)");
 			process.fillUploadQueue();
 			
 			uploadId = getServer().getScheduler().scheduleAsyncDelayedTask(this, upload.setQuick(true), 5 * 20L);
@@ -122,6 +122,7 @@ public class MineBackup extends Base {
 		else {
 			if (delay == 90) delay -= Calendar.getInstance().get(Calendar.SECOND);
 			if (Debug.ON) Debug.info("spawnUpload(); delaying " + delay);
+            process.fillUploadQueue();
 			
 			uploadId = getServer().getScheduler().scheduleAsyncRepeatingTask(this, upload.setQuick(false), delay * 20L, 300 * 20L);
 		}
@@ -150,6 +151,9 @@ public class MineBackup extends Base {
 	
 	private void checkUpload(final String type) {
 		if (Debug.ON) Debug.info("checkUpload(\"" + type + "\")");
+
+        if (Debug.ON) Debug.info("config.hasAction(" + type + ") == " + config.hasAction(type));
+        if (Debug.ON) Debug.info("upoad.hasAuth(" + type + ") == " + upload.hasAuth(type));
 		
 		if (config.hasAction(type) && upload.hasAuth(type)) {
 			debug("Adding " + type + " to available actions");
