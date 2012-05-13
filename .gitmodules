@@ -1,0 +1,3 @@
+[submodule "CraftBukkit-Base"]
+	path = CraftBukkit-Base
+	url = git@github.com:keyz182/CraftBukkit-Base.git
