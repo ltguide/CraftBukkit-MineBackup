@@ -31,8 +31,8 @@ public class SyncCall implements Callable<Boolean> {
 				if (player.isOnline()) player.saveData();
 			
 			final Location spawn = world.getSpawnLocation();
-			x = (int) spawn.getX() >> 4;
-			z = (int) spawn.getZ() >> 4;
+			x = (int) spawn.getX();
+			z = (int) spawn.getZ();
 			
 			final Chunk[] chunks = world.getLoadedChunks();
 			int count = 0;
@@ -67,6 +67,12 @@ public class SyncCall implements Callable<Boolean> {
 	private boolean isSpawnChunk(final Chunk chunk) {
 		if (!world.getKeepSpawnInMemory()) return false;
 		
-		return x - 13 <= chunk.getX() && chunk.getX() <= x + 13 && z - 13 <= chunk.getZ() && chunk.getZ() <= z + 13;
+		final int xSpawn = chunk.getX() * 16 + 8 - x;
+		final int zSpawn = chunk.getZ() * 16 + 8 - z;
+		final int radius = 128;
+		
+		if (xSpawn < -radius || xSpawn > radius || zSpawn < -radius || zSpawn > radius) return false;
+		
+		return true;
 	}
 }
