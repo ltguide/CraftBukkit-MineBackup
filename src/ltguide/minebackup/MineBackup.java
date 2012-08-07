@@ -13,7 +13,6 @@ import ltguide.minebackup.configuration.Persist;
 import ltguide.minebackup.configuration.Strings;
 import ltguide.minebackup.listeners.CommandListener;
 import ltguide.minebackup.listeners.PlayerListener;
-import ltguide.minebackup.listeners.WorldListener;
 import ltguide.minebackup.threads.SyncCall;
 import ltguide.minebackup.threads.TaskProcess;
 import ltguide.minebackup.threads.TaskUpload;
@@ -56,7 +55,6 @@ public class MineBackup extends Base {
 		
 		new CommandListener(this);
 		new PlayerListener(this);
-		new WorldListener(this);
 		
 		checkStartupDelay();
 		
