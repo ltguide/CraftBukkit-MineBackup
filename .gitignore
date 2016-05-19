@@ -163,3 +163,12 @@ pip-log.txt
 
 # Mac crap
 .DS_Store
+
+##IDEA##
+/out
+/CraftBukkit-Base/CraftBukkit-Base.iml
+/.idea/workspace.xml
+/.idea/libraries
+
+##Maven##
+/target

@@ -1,0 +1,9 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="MineBackup">
+    <output-path>$PROJECT_DIR$/out/artifacts/MineBackup</output-path>
+    <root id="archive" name="MineBackup.jar">
+      <element id="module-output" name="CraftBukkit-MineBackup" />
+      <element id="module-output" name="CraftBukkit-Base" />
+    </root>
+  </artifact>
+</component>
