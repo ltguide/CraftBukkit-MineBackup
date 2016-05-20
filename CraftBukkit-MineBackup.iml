@@ -10,8 +10,9 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="CraftBukkit-Base" />
-    <orderEntry type="library" name="Maven: org.bukkit:bukkit:1.6.4-R2.0" level="project" />
-    <orderEntry type="library" name="Maven: net.milkbowl.vault:Vault:1.5.6" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: org.bukkit:bukkit:1.6.4-R2.0" level="project" />
+    <orderEntry type="library" scope="PROVIDED" name="Maven: net.milkbowl.vault:Vault:1.5.6" level="project" />
+    <orderEntry type="library" name="Maven: com.dropbox.core:dropbox-core-sdk:1.7.7" level="project" />
+    <orderEntry type="library" name="Maven: com.fasterxml.jackson.core:jackson-core:2.4.0-rc3" level="project" />
   </component>
 </module>

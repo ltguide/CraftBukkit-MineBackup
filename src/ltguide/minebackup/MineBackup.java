@@ -1,13 +1,5 @@
 package ltguide.minebackup;
 
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.concurrent.Future;
-
-import ltguide.base.Base;
-import ltguide.base.Debug;
 import ltguide.minebackup.configuration.Config;
 import ltguide.minebackup.configuration.Persist;
 import ltguide.minebackup.configuration.Strings;
@@ -16,9 +8,14 @@ import ltguide.minebackup.listeners.PlayerListener;
 import ltguide.minebackup.threads.SyncCall;
 import ltguide.minebackup.threads.TaskProcess;
 import ltguide.minebackup.threads.TaskUpload;
-
 import org.bukkit.Bukkit;
 import org.bukkit.World;
+
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.concurrent.Future;
 
 public class MineBackup extends Base {
 	private int processId = -1;

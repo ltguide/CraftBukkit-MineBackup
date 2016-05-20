@@ -1,24 +1,17 @@
 package ltguide.minebackup.configuration;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.zip.Deflater;
-
-import ltguide.base.Base;
-import ltguide.base.Debug;
-import ltguide.base.configuration.Configuration;
-import ltguide.base.data.SourceFilenameFilter;
-import ltguide.base.utils.HttpUtils;
+import ltguide.minebackup.Base;
+import ltguide.minebackup.Debug;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Process;
-
+import ltguide.minebackup.data.SourceFilenameFilter;
+import ltguide.minebackup.utils.HttpUtils;
 import org.bukkit.configuration.ConfigurationSection;
+
+import java.io.File;
+import java.io.FilenameFilter;
+import java.util.*;
+import java.util.zip.Deflater;
 
 public class Config extends Configuration {
 	public final Set<String> loaded = new HashSet<String>();

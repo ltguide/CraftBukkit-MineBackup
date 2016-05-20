@@ -1,7 +1,5 @@
 package ltguide.minebackup.data;
 
-import ltguide.base.data.IMessage;
-
 public enum Messages implements IMessage {
 	TARGET_NONE(true),
 	TARGET_REQUIRED(true),

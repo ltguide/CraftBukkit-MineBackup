@@ -1,8 +1,7 @@
 package ltguide.minebackup.configuration;
 
-import ltguide.base.Base;
-import ltguide.base.Debug;
-import ltguide.base.configuration.StringsConfiguration;
+import ltguide.minebackup.Base;
+import ltguide.minebackup.Debug;
 import ltguide.minebackup.data.Commands;
 import ltguide.minebackup.data.Messages;
 

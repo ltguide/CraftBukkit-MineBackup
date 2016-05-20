@@ -1,22 +1,16 @@
 package ltguide.minebackup.configuration;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import ltguide.base.Base;
-import ltguide.base.Debug;
-import ltguide.base.configuration.Configuration;
-import ltguide.base.utils.DirUtils;
+import ltguide.minebackup.Base;
+import ltguide.minebackup.Debug;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Process;
 import ltguide.minebackup.data.Upload;
-
+import ltguide.minebackup.utils.DirUtils;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+
+import java.io.File;
+import java.util.*;
 
 public class Persist extends Configuration {
 	private static final long maxDropboxSize = 180 * 1024 * 1024;

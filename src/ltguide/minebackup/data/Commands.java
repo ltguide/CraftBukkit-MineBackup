@@ -1,7 +1,5 @@
 package ltguide.minebackup.data;
 
-import ltguide.base.data.ICommand;
-
 public enum Commands implements ICommand {
 	NEXT("manual", Messages.BACKUP_NEXT, "", false),
 	NOW("manual", Messages.BACKUP_NOW, "", false),
