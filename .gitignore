@@ -172,3 +172,4 @@ pip-log.txt
 
 ##Maven##
 /target
+dependency-reduced-pom.xml
