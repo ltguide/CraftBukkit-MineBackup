@@ -4,12 +4,7 @@ import com.dropbox.core.*;
 import ltguide.minebackup.MineBackup;
 
 import javax.naming.AuthenticationException;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.*;
 import java.util.Locale;
 
 public class DropBoxUtils {
@@ -98,13 +93,16 @@ public class DropBoxUtils {
 
     private void uploadChunked(DbxClient dbxClient, File file, String path) throws IOException, DbxException {
 
-        byte[] fileData = Files.readAllBytes(Paths.get(file.getPath()));
+        RandomAccessFile raf = new RandomAccessFile(file, "r");
+        byte[] fileBuffer = new byte[DROPBOX_UPLOAD_CHUNK_SIZE];
+        raf.read(fileBuffer, 0, DROPBOX_UPLOAD_CHUNK_SIZE);
 
-        String uploadId = dbxClient.chunkedUploadFirst(fileData, 0, DROPBOX_UPLOAD_CHUNK_SIZE);
+        String uploadId = dbxClient.chunkedUploadFirst(fileBuffer);
 
         for (int currentPosition = DROPBOX_UPLOAD_CHUNK_SIZE; currentPosition < file.length(); ) {
             int length = currentPosition + DROPBOX_UPLOAD_CHUNK_SIZE < file.length() ? DROPBOX_UPLOAD_CHUNK_SIZE : (int) (file.length() - currentPosition);
-            dbxClient.chunkedUploadAppend(uploadId, currentPosition, fileData, currentPosition, length);
+            raf.read(fileBuffer, currentPosition, length);
+            dbxClient.chunkedUploadAppend(uploadId, currentPosition, fileBuffer);
         }
 
         dbxClient.chunkedUploadFinish(path, DbxWriteMode.add(), uploadId);
