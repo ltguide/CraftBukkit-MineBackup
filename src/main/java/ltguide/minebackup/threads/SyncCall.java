@@ -1,14 +1,13 @@
 package ltguide.minebackup.threads;
 
-import java.util.List;
-import java.util.concurrent.Callable;
-
 import ltguide.minebackup.MineBackup;
-
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+
+import java.util.List;
+import java.util.concurrent.Callable;
 
 public class SyncCall implements Callable<Boolean> {
 	private final MineBackup plugin;

@@ -1,7 +1,6 @@
 package ltguide.minebackup.listeners;
 
 import ltguide.minebackup.MineBackup;
-
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;

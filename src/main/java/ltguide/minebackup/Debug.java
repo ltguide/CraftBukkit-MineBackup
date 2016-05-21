@@ -3,7 +3,7 @@ package ltguide.minebackup;
 import java.util.logging.Logger;
 
 public final class Debug {
-    public static final boolean ON = true; // change to false for release
+    public static final boolean ON = false; // change to false for release
     private static Logger logger = Logger.getLogger("Minecraft");
 
     public static void info(final String msg) {
