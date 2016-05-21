@@ -5,6 +5,7 @@ import ltguide.minebackup.MineBackup;
 
 import javax.naming.AuthenticationException;
 import java.io.*;
+import java.util.Date;
 import java.util.Locale;
 
 public class DropBoxUtils {
@@ -98,17 +99,16 @@ public class DropBoxUtils {
         raf.read(fileBuffer, 0, DROPBOX_UPLOAD_CHUNK_SIZE);
 
         String uploadId = dbxClient.chunkedUploadFirst(fileBuffer);
-        float lastPercent = 0;
+        Date lastUpdate = new Date();
         for (int currentPosition = DROPBOX_UPLOAD_CHUNK_SIZE; currentPosition < file.length(); ) {
             int length = currentPosition + DROPBOX_UPLOAD_CHUNK_SIZE < file.length() ? DROPBOX_UPLOAD_CHUNK_SIZE : (int) (file.length() - currentPosition);
             raf.read(fileBuffer, 0, length);
             dbxClient.chunkedUploadAppend(uploadId, currentPosition, fileBuffer);
             currentPosition += length;
 
-            float percentDone = (float) currentPosition / file.length();
-            if (percentDone - lastPercent > 0.10) {
-                lastPercent = percentDone;
-                plugin.info(String.format("%.0f of file uploaded.", percentDone * 100));
+            if (new Date().getTime() - lastUpdate.getTime() > 60 * 1000) {
+                lastUpdate = new Date();
+                plugin.info(String.format("%.2f% of file uploaded.", currentPosition / file.length() * 100));
             }
         }
 
