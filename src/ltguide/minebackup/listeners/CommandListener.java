@@ -3,7 +3,6 @@ package ltguide.minebackup.listeners;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Commands;
 import ltguide.minebackup.exceptions.CommandException;
-import ltguide.minebackup.utils.DropBoxUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandExecutor;
@@ -64,13 +63,13 @@ public class CommandListener implements CommandExecutor {
                     plugin.broadcast(sender);
                     break;
                 case DROPBOX:
-                    String authUrl = DropBoxUtils.getInstance().authoriseStart();
+                    String authUrl = plugin.dropBoxUtils.authoriseStart();
                     plugin.send(sender, "To authenticate with Dropbox goto the following link and allow the access!");
                     plugin.send(sender, "Link: " + authUrl);
-                    plugin.send(sender, "After that copy the shown code and put it in the plugin with /backup dropbox <accessToken>");
+                    plugin.send(sender, "After that, copy the shown code and put it in the plugin with /backup dropboxtoken <accessToken>");
                     break;
                 case DROPBOXTOKEN:
-                    if (DropBoxUtils.getInstance().authoriseEnd(plugin, args[1])) {
+                    if (plugin.dropBoxUtils.authoriseEnd(args[1])) {
                         plugin.spawnUpload(90);
                         plugin.broadcast(sender);
                     }

@@ -4,10 +4,10 @@ import ltguide.minebackup.Debug;
 import ltguide.minebackup.MineBackup;
 import ltguide.minebackup.data.Upload;
 import ltguide.minebackup.exceptions.HttpException;
-import ltguide.minebackup.utils.DropBoxUtils;
 import ltguide.minebackup.utils.HttpUtils;
 import sun.net.ftp.FtpLoginException;
 
+import javax.naming.AuthenticationException;
 import java.io.File;
 import java.io.FileNotFoundException;
 
@@ -89,7 +89,7 @@ public class TaskUpload extends Thread {
 
         try {
             if ("dropbox".equals(upload.getType())) {
-                DropBoxUtils.getInstance().upload(file, plugin.persist.getDropboxToken());
+                plugin.dropBoxUtils.upload(file, plugin.persist.getDropboxToken());
             } else {
                 HttpUtils.ftp(ftpString + path + ";type=i,mkd=survival", file);
             }
@@ -100,6 +100,8 @@ public class TaskUpload extends Thread {
             else if (e.getCause() instanceof FileNotFoundException)
                 plugin.warning("% failed to upload to ftp server: " + e.getCause().getMessage());
             else plugin.warning("% " + e.getMessage());
+        } catch (AuthenticationException e) {
+            plugin.warning("No dropbox authentication available!");
         }
     }
 }

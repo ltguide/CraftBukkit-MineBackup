@@ -3,28 +3,33 @@ package ltguide.minebackup.utils;
 import com.dropbox.core.*;
 import ltguide.minebackup.MineBackup;
 
+import javax.naming.AuthenticationException;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Locale;
 
 public class DropBoxUtils {
 
     public static final long MAX_DROPBOX_PUSH_SIZE = 150 * 1024 * 1024;
 
-    private static final DropBoxUtils instance = new DropBoxUtils();
     private static final String APP_KEY = "jbx8av4f9v22nol";
     private static final String APP_SECRET = "";
     private static final String IDENTIFIER = "MineBackupV2";
+    private static final int DROPBOX_UPLOAD_CHUNK_SIZE = 10 * 1024 * 1024;
 
     private DbxAppInfo appInfo;
     private DbxWebAuthNoRedirect webAuth;
+    private DbxRequestConfig requestConfig;
+    private MineBackup plugin;
 
-
-    private DropBoxUtils() {
-        appInfo = new DbxAppInfo(APP_KEY, APP_SECRET);
-    }
-
-    public static DropBoxUtils getInstance() {
-        return instance;
+    public DropBoxUtils(MineBackup plugin) {
+        this.plugin = plugin;
+        this.appInfo = new DbxAppInfo(APP_KEY, APP_SECRET);
+        this.requestConfig = new DbxRequestConfig(IDENTIFIER, Locale.getDefault().toString());
     }
 
     /**
@@ -33,7 +38,6 @@ public class DropBoxUtils {
      * @return Returns the link to allows the access.
      */
     public String authoriseStart() {
-        DbxRequestConfig requestConfig = new DbxRequestConfig(IDENTIFIER, Locale.getDefault().toString());
         webAuth = new DbxWebAuthNoRedirect(requestConfig, appInfo);
 
         return webAuth.start();
@@ -43,7 +47,7 @@ public class DropBoxUtils {
 //        System.out.print("Enter the authorization code here: ");
     }
 
-    public boolean authoriseEnd(MineBackup plugin, String code) {
+    public boolean authoriseEnd(String code) {
 
         if (webAuth == null) {
             return false;
@@ -63,19 +67,46 @@ public class DropBoxUtils {
         return true;
     }
 
-    public void upload(File file, String authToken) {
-        if (file.length() > MAX_DROPBOX_PUSH_SIZE) {
-            uploadChunked(file);
-        } else {
-            uploadPush(file);
+    public void upload(File file, String authToken) throws AuthenticationException {
+        if (authToken == null) {
+            throw new AuthenticationException("Invalid authtoken");
+        }
+
+        DbxClient dbxClient = new DbxClient(requestConfig, authToken);
+        String path = file.getPath().substring(((String) plugin.config.get("directories.destination")).length());
+
+        try {
+            if (file.length() > MAX_DROPBOX_PUSH_SIZE) {
+                uploadChunked(dbxClient, file, path);
+            } else {
+                uploadPush(dbxClient, file, path);
+            }
+
+            plugin.info("Uploaded " + file.getName() + " to dropbox.");
+        } catch (DbxException ex) {
+            plugin.logException(ex, "Error uploading to Dropbox");
+        } catch (IOException ex) {
+            plugin.logException(ex, "Error reading from file \"" + file);
         }
     }
 
-    private void uploadPush(File file) {
-
+    private void uploadPush(DbxClient dbxClient, File file, String path) throws IOException, DbxException {
+        try (InputStream in = new FileInputStream(file)) {
+            dbxClient.uploadFile(path, DbxWriteMode.add(), file.length(), in);
+        }
     }
 
-    private void uploadChunked(File file) {
+    private void uploadChunked(DbxClient dbxClient, File file, String path) throws IOException, DbxException {
 
+        byte[] fileData = Files.readAllBytes(Paths.get(file.getPath()));
+
+        String uploadId = dbxClient.chunkedUploadFirst(fileData, 0, DROPBOX_UPLOAD_CHUNK_SIZE);
+
+        for (int currentPosition = DROPBOX_UPLOAD_CHUNK_SIZE; currentPosition < file.length(); ) {
+            int length = currentPosition + DROPBOX_UPLOAD_CHUNK_SIZE < file.length() ? DROPBOX_UPLOAD_CHUNK_SIZE : (int) (file.length() - currentPosition);
+            dbxClient.chunkedUploadAppend(uploadId, currentPosition, fileData, currentPosition, length);
+        }
+
+        dbxClient.chunkedUploadFinish(path, DbxWriteMode.add(), uploadId);
     }
 }
