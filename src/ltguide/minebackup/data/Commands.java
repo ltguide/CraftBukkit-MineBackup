@@ -6,7 +6,8 @@ public enum Commands implements ICommand {
 	SOON("manual", Messages.BACKUP_SOON, "", false),
 	UPLOAD("manual", Messages.BACKUP_UPLOAD, "", false),
 	STATUS("status", Messages.STATUS_NOTE, "", false),
-	DROPBOX("dropbox", Messages.DROPBOX, "<key> <secret>", false),
+	DROPBOX("dropbox", Messages.DROPBOX, "", false),
+	DROPBOXTOKEN("dropbox", Messages.DROPBOX, "<authToken>", false),
 	RELOAD("reload", Messages.RELOAD, "", false),
 	USAGE("usage", null, "", false);
 	

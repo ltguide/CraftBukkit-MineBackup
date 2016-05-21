@@ -13,8 +13,7 @@ import java.io.File;
 import java.util.*;
 
 public class Persist extends Configuration {
-	private static final long maxDropboxSize = 180 * 1024 * 1024;
-	
+
 	public Persist(final Base instance) {
 		super(instance, "persist.dat");
 		reload();
@@ -127,11 +126,6 @@ public class Persist extends Configuration {
 		final File file = new File(name);
 		if (!file.exists()) return false;
 		
-		if ("dropbox".equals(type) && file.length() > maxDropboxSize) {
-			plugin.warning(name + ": file size exceeds maximum allowed by the Dropbox API");
-			return false;
-		}
-		
 		List<Map<?, ?>> list = getMapList("upload");
 		if (list == null) list = new ArrayList<Map<?, ?>>();
 		
@@ -155,14 +149,13 @@ public class Persist extends Configuration {
 		
 		return new Upload(upload.get("type").toString(), upload.get("name").toString());
 	}
-	
-	public String getDropboxAuth(final String key) {
-		return getString("dropbox.auth." + key);
+
+	public String getDropboxToken() {
+		return getString("dropbox.auth.token");
 	}
-	
-	public void setDropboxAuth(final String key, final String secret) {
-		set("dropbox.auth.key", key);
-		set("dropbox.auth.secret", secret);
+
+	public void setDropboxToken(final String token) {
+		set("dropbox.auth.token", token);
 		save();
 	}
 }

@@ -7,14 +7,9 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.SortedMap;
 
 public class HttpUtils {
-    public static String responseGet(final String url) throws HttpException {
-        return new Scanner(get(url)).useDelimiter("\\A").next();
-    }
+
 
     public static InputStream get(final String url) throws HttpException {
         return getResponse(setupConnection(url));
@@ -27,26 +22,6 @@ public class HttpUtils {
             throw new HttpException(e);
         }
 
-    }
-
-    public static InputStream put(final String url, final String auth, final File file) throws HttpException {
-        final HttpURLConnection connection = setupConnection(url);
-        connection.setRequestProperty("Authorization", auth);
-
-        try {
-            final long length = file.length();
-            connection.setRequestMethod("PUT");
-            connection.setDoOutput(true);
-            connection.setFixedLengthStreamingMode((int) length);
-            connection.setRequestProperty("Content-Length", String.valueOf(length));
-            connection.setRequestProperty("Content-Encoding", "application/octet-stream");
-
-            send(new FileInputStream(file), connection.getOutputStream());
-
-            return getResponse(connection);
-        } catch (final IOException e) {
-            throw new HttpException(e);
-        }
     }
 
     private static void send(final InputStream inStream, final OutputStream outStream) throws IOException {
@@ -84,40 +59,16 @@ public class HttpUtils {
         }
     }
 
-    public static String urlencode(final Map<String, String> params) {
-        final StringBuilder sb = new StringBuilder();
-        for (final Map.Entry<String, String> param : params.entrySet()) {
-            sb.append("&");
-            sb.append(param.getKey());
-            sb.append("=");
-            sb.append(encode(param.getValue()));
-        }
-
-        return sb.substring(1);
-    }
-
-    public static String createAuth(final SortedMap<String, String> params, final String signature) {
-        final StringBuilder sb = new StringBuilder("OAuth ");
-
-        for (final Map.Entry<String, String> param : params.entrySet()) {
-            sb.append(param.getKey());
-            sb.append("=\"");
-            sb.append(encode(param.getValue()));
-            sb.append("\", ");
-        }
-
-        sb.append("oauth_signature=\"");
-        sb.append(signature);
-        sb.append("\"");
-
-        return sb.toString();
-    }
-
     public static String encode(final String string) {
         try {
             return URLEncoder.encode(string, "UTF-8").replace("+", "%20").replace("*", "%2A");
         } catch (final Exception e) {
             return "";
         }
+    }
+
+    static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 }

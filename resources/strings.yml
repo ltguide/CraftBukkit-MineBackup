@@ -42,7 +42,10 @@ commands:
   status:
     description: 'Display the scheduled time and interval for each action in the queue.'
   dropbox:
-    description: 'Add Dropbox authentication tokens. Visit https://minebackup-dropbox.appspot.com/ for values.'
+    description: 'Creates dropbox authentication link.'
+    broadcast: false
+  dropboxtoken:
+    description: 'Add Dropbox authentication token.'
     broadcast: false
   reload:
     description: 'Reload configuration and reset queue to configured intervals.'
