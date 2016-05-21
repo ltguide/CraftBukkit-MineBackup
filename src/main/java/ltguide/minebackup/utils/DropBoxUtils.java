@@ -14,7 +14,7 @@ public class DropBoxUtils {
     private static final String APP_KEY = "jbx8av4f9v22nol";
     private static final String APP_SECRET = "";
     private static final String IDENTIFIER = "MineBackupV2";
-    private static final int DROPBOX_UPLOAD_CHUNK_SIZE = 10 * 1024 * 1024;
+    private static final int DROPBOX_UPLOAD_CHUNK_SIZE = 2 * 1024 * 1024;
 
     private DbxAppInfo appInfo;
     private DbxWebAuthNoRedirect webAuth;
@@ -98,11 +98,18 @@ public class DropBoxUtils {
         raf.read(fileBuffer, 0, DROPBOX_UPLOAD_CHUNK_SIZE);
 
         String uploadId = dbxClient.chunkedUploadFirst(fileBuffer);
-
+        float lastPercent = 0;
         for (int currentPosition = DROPBOX_UPLOAD_CHUNK_SIZE; currentPosition < file.length(); ) {
             int length = currentPosition + DROPBOX_UPLOAD_CHUNK_SIZE < file.length() ? DROPBOX_UPLOAD_CHUNK_SIZE : (int) (file.length() - currentPosition);
-            raf.read(fileBuffer, currentPosition, length);
+            raf.read(fileBuffer, 0, length);
             dbxClient.chunkedUploadAppend(uploadId, currentPosition, fileBuffer);
+            currentPosition += length;
+
+            float percentDone = (float) currentPosition / file.length();
+            if (percentDone - lastPercent > 0.10) {
+                lastPercent = percentDone;
+                plugin.info(String.format("%.0f of file uploaded.", percentDone * 100));
+            }
         }
 
         dbxClient.chunkedUploadFinish(path, DbxWriteMode.add(), uploadId);
