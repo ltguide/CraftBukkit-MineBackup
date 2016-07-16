@@ -108,7 +108,7 @@ public class DropBoxUtils {
 
             if (new Date().getTime() - lastUpdate.getTime() > 60 * 1000) {
                 lastUpdate = new Date();
-                plugin.info(String.format("%.2f% of file uploaded.", currentPosition / file.length() * 100));
+                plugin.info(String.format("%.2f%% of file uploaded.", ((double) currentPosition / file.length()) * 100));
             }
         }
 

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CraftBukkit-MineBackup.iml" filepath="$PROJECT_DIR$/CraftBukkit-MineBackup.iml" />
+      <module fileurl="file://$PROJECT_DIR$/MineBackup.iml" filepath="$PROJECT_DIR$/MineBackup.iml" />
     </modules>
   </component>
 </project>
