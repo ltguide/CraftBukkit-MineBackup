@@ -6,5 +6,6 @@ public enum Action {
 	COMPRESS,
 	CLEANUP,
 	DROPBOX,
-	FTP;
+	FTP,
+	MYSQL
 }

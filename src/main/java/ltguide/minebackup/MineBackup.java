@@ -9,6 +9,7 @@ import ltguide.minebackup.threads.SyncCall;
 import ltguide.minebackup.threads.TaskProcess;
 import ltguide.minebackup.threads.TaskUpload;
 import ltguide.minebackup.utils.DropBoxUtils;
+import ltguide.minebackup.utils.MySqlUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 
@@ -28,7 +29,8 @@ public class MineBackup extends Base {
     public Strings strings;
     public Persist persist;
     public DropBoxUtils dropBoxUtils;
-    public LinkedHashSet<String> actions = new LinkedHashSet<String>(Arrays.asList("save", "copy", "compress", "cleanup", "dropbox", "ftp"));
+    public LinkedHashSet<String> actions = new LinkedHashSet<String>(Arrays.asList("save", "copy", "compress", "cleanup", "dropbox", "ftp", "mysql"));
+    private MySqlUtils mySqlUtils;
 
     @Override
     public void onDisable() {
@@ -48,9 +50,11 @@ public class MineBackup extends Base {
         strings = new Strings(this);
         persist = new Persist(this);
         this.dropBoxUtils = new DropBoxUtils(this);
+        this.mySqlUtils = new MySqlUtils(this);
 
-        if (!config.hasAction("save"))
+        if (!config.hasAction("save")) {
             warning("You have NOT enabled any worlds to be automatically saved. This plugin needs to control world saving to prevent backup corruption.");
+        }
         else for (final World world : Bukkit.getWorlds())
             world.setAutoSave(false);
 

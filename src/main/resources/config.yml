@@ -14,6 +14,7 @@ default_actions:
   cleanup: false
   dropbox: false
   ftp: false
+  mysql: false
 default_settings:
   save: 15m
   copy: 1h
@@ -22,6 +23,7 @@ default_settings:
   cleanup: '2:00'
   dropbox: '3:00'
   ftp: '3:30'
+  mysql: '3d'
   keep: 24
   broadcast: false
 worlds:
@@ -72,8 +74,14 @@ ftp:
   path: '/'
   username: 'user'
   password: ''
+mysql:
+  hostname: 'localhost'
+  port: 3306
+  database: 'myDatabase'
+  user: 'admin'
+  password: ''
 actions_on_startup:
   enabled: false
   delay: 2m
 debug: false
-version-nomodify: '5.9.4'
+version-nomodify: '5.9.5'
