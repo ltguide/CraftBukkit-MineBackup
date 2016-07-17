@@ -1,12 +1,11 @@
-CraftBukkit-MineBackup
-===========
+# CraftBukkit-MineBackup
 
-A CraftBukkit (Minecraft Server) plugin.
+A Bukkit (Minecraft Server) plugin.
 
 MineBackup - Automatically save and backup your server!
 
-Website: [BukkitDev](http://dev.bukkit.org/server-mods/minebackup/) | [Bukkit Forum](http://forums.bukkit.org/threads/43042/)
+It is forked from Itguide and extended with some new features which are listed below:
 
-Compiling:
-CraftBukkit-Base/src: add to project as source folder
-Add bukkit.jar and vault.jar to build path
+- Dropbox API v2
+- Backup of all mysql tables of the server
+
