@@ -1,9 +1,11 @@
 package ltguide.minebackup.utils
 
+import ltguide.minebackup.Debug
 import ltguide.minebackup.MineBackup
 import java.io.File
 import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.SQLException
 import java.util.*
 
 /**
@@ -23,14 +25,13 @@ class MySqlUtils(private val plugin: MineBackup) {
 
         hostname = config.getString("mysql.hostname")
         port = config.getInt("mysql.port")
-        database = config.getString("mysql.hostname")
+        database = config.getString("mysql.database")
         user = config.getString("mysql.user")
         password = config.getString("mysql.password")
     }
 
-    fun exportDatabase(saveFolder: File) {
-        val connection = connectToDatabase()
-
+    @Throws(SQLException::class)
+    fun exportDatabase(connection: Connection, saveFolder: File) {
         val tableNames = getListOfTables(connection)
 
         tableNames.forEach {
@@ -39,20 +40,25 @@ class MySqlUtils(private val plugin: MineBackup) {
             val selectQuery = "SELECT * FROM $it INTO OUTFILE '$filename' FIELDS TERMINATED BY ',' ENCLOSED BY '\"' LINES TERMINATED BY '\n'"
             val statement = connection.prepareStatement(selectQuery)
             statement.execute()
-        }
 
-        closeDatabase(connection)
+            if (Debug.ON) plugin.logger.info("Export table $it")
+        }
     }
 
-    private fun connectToDatabase(): Connection {
+    @Throws(SQLException::class)
+    fun connectToDatabase(): Connection {
         val connProps = Properties()
         connProps.put("user", user)
         connProps.put("password", password)
         val connection = DriverManager.getConnection("jdbc:mysql://$hostname:$port/$database", connProps)
+
+        if (Debug.ON) plugin.logger.info("Connected to $hostname:$port/$database")
+
         return connection
     }
 
-    private fun closeDatabase(connection: Connection) {
+    @Throws(SQLException::class)
+    fun closeDatabase(connection: Connection) {
         connection.close()
     }
 

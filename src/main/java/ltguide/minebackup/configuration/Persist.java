@@ -49,6 +49,8 @@ public class Persist extends Configuration {
 		World world = null;
 		
 		if ("worlds".equals(type) && (world = plugin.getServer().getWorld(name)) == null) return false;
+
+		if ("mysql".equals(type)) return true;
 		
 		try {
 			return getBoolean(type + "." + name + ".dirty") || ("Server thread".equals(Thread.currentThread().getName()) ? hasPlayers(world) : ((MineBackup) plugin).syncCall("count", world).get());

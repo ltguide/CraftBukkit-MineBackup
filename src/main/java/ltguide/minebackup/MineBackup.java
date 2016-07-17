@@ -30,7 +30,7 @@ public class MineBackup extends Base {
     public Persist persist;
     public DropBoxUtils dropBoxUtils;
     public LinkedHashSet<String> actions = new LinkedHashSet<String>(Arrays.asList("save", "copy", "compress", "cleanup", "dropbox", "ftp", "mysql"));
-    private MySqlUtils mySqlUtils;
+    public MySqlUtils mySqlUtils;
 
     @Override
     public void onDisable() {
