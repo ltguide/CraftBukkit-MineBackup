@@ -167,7 +167,7 @@ pip-log.txt
 ##IDEA##
 /out
 /CraftBukkit-Base/CraftBukkit-Base.iml
-/.idea
+.idea
 *.iml
 
 ##Maven##
