@@ -74,7 +74,7 @@ public class Persist extends Configuration {
 			return false;
 		}
 		
-		return plugin.getServer().getOnlinePlayers().length > 0;
+		return !plugin.getServer().getOnlinePlayers().isEmpty();
 	}
 	
 	public long getNext(final String type, final String name, final String action) {
