@@ -21,13 +21,21 @@ class DropBoxUtils(private val plugin: MineBackup) {
         private val DROPBOX_UPLOAD_CHUNK_SIZE = 2 * 1024 * 1024
     }
 
-    private val appInfo: DbxAppInfo
+    private var appInfo: DbxAppInfo? = null
     private var webAuth: DbxWebAuthNoRedirect? = null
-    private val requestConfig: DbxRequestConfig
+    private var requestConfig: DbxRequestConfig? = null
 
     init {
-        this.appInfo = DbxAppInfo(APP_KEY, APP_SECRET)
-        this.requestConfig = DbxRequestConfig(IDENTIFIER, Locale.getDefault().toString())
+        if (!APP_SECRET.isEmpty()) {
+            this.appInfo = DbxAppInfo(APP_KEY, APP_SECRET)
+            this.requestConfig = DbxRequestConfig(IDENTIFIER, Locale.getDefault().toString())
+        } else {
+            plugin.warning("The Dropbox feature is disabled, because of a missing appsecret for this build of Minebackup.")
+        }
+    }
+
+    fun isActivated(): Boolean {
+        return appInfo != null
     }
 
     /**
@@ -36,14 +44,18 @@ class DropBoxUtils(private val plugin: MineBackup) {
      * @return Returns the link to allows the access.
      */
     fun authoriseStart(): String {
-        webAuth = DbxWebAuthNoRedirect(requestConfig, appInfo)
-
-        return webAuth!!.start()
+        if (isActivated()) {
+            webAuth = DbxWebAuthNoRedirect(requestConfig, appInfo)
+            return webAuth!!.start()
+        } else {
+            plugin.warning("Dropbox feature is not activated!")
+            return ""
+        }
     }
 
     fun authoriseEnd(code: String): Boolean {
 
-        if (webAuth == null) {
+        if (!isActivated() || webAuth == null) {
             return false
         }
 
@@ -63,6 +75,10 @@ class DropBoxUtils(private val plugin: MineBackup) {
 
     @Throws(AuthenticationException::class)
     fun upload(file: File, authToken: String) {
+        if (!isActivated()) {
+            plugin.warning("Dropbox Feature is not activated!")
+            return
+        }
 
         val dbxClient = DbxClient(requestConfig, authToken)
         val path = file.path.substring((plugin.config.get("directories.destination") as String).length)
